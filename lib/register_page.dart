@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/FormHelper.dart';
 import 'package:snippet_coder_utils/ProgressHUD.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -12,6 +13,7 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   bool isAPIcallProcess = false;
   bool hidePassword = true;
   GlobalKey<FormState> globalformkey = GlobalKey<FormState>();
@@ -23,9 +25,31 @@ class _RegisterPageState extends State<RegisterPage> {
     if (globalformkey.currentState!.validate()) {
       globalformkey.currentState!.save();
 
-      // Simulate registration success
-      // Replace with your actual registration logic if not using Firebase
-      Navigator.pushNamed(context, "/");
+      setState(() {
+        isAPIcallProcess = true;
+      });
+
+      try {
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: email!,
+          password: password!,
+        );
+
+        await userCredential.user!.updateDisplayName(username);
+
+        Navigator.pushReplacementNamed(context, "/");
+      } catch (e) {
+        print("Error: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Registration failed. Please try again."),
+          ),
+        );
+      } finally {
+        setState(() {
+          isAPIcallProcess = false;
+        });
+      }
     }
   }
 
@@ -188,7 +212,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 "Register",
               ),
               style: ElevatedButton.styleFrom(
-                primary: HexColor("#283B71"),
+                backgroundColor: HexColor("#283B71"),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
