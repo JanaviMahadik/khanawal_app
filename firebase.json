@@ -1,0 +1,30 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "cooking-app-1f8ba",
+          "appId": "1:11586263062:android:3733f838c9c8b9d492fd37",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "cooking-app-1f8ba",
+          "configurations": {
+            "android": "1:11586263062:android:3733f838c9c8b9d492fd37",
+            "web": "1:11586263062:web:12aa54021985d03f92fd37",
+            "windows": "1:11586263062:web:216f97ac6d50cc7e92fd37"
+          }
+        }
+      }
+    }
+  },
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}
