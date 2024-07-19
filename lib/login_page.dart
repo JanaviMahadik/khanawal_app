@@ -1,10 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/FormHelper.dart';
 import 'package:snippet_coder_utils/ProgressHUD.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
-import 'package:cooking_app/home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -24,25 +24,43 @@ class _LoginPageState extends State<LoginPage> {
     if (globalformkey.currentState!.validate()) {
       globalformkey.currentState!.save();
 
-      // Simulate login success
-      // Replace with your actual login logic if not using Firebase
-      // For example, checking hardcoded credentials:
-      if (username == 'janavi' && password == 'password') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+      setState(() {
+        isAPIcallProcess = true;
+      });
+
+      try {
+        UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: username!,
+          password: password!,
         );
-      } else {
-        // Show error message
-        FormHelper.showSimpleAlertDialog(
-          context,
-          "Khanawal",
-          "Invalid username or password",
-          "OK",
-              () {
-            Navigator.of(context).pop();
-          },
-        );
+
+        if (userCredential.user != null) {
+          Navigator.pushReplacementNamed(context, "/home");
+        } else {
+          // Show error if login fails (though unlikely with Firebase)
+          FormHelper.showSimpleAlertDialog(
+            context,
+            "Khanawal",
+            "Invalid username or password",
+            "OK",
+                () {
+              Navigator.of(context).pop();
+            },
+          );
+        }
+      } on FirebaseAuthException catch (e) {
+        // Handle FirebaseAuth exceptions
+        if (e.code == 'user-not-found') {
+          print('No user found for that email.');
+        } else if (e.code == 'wrong-password') {
+          print('Wrong password provided for that user.');
+        } else {
+          print(e.toString());
+        }
+      } finally {
+        setState(() {
+          isAPIcallProcess = false;
+        });
       }
     }
   }
@@ -121,10 +139,10 @@ class _LoginPageState extends State<LoginPage> {
           FormHelper.inputFieldWidget(
             context,
             '\ue7fd',
-            "username",
+            "mail",
                 (onValidateVal) {
               if (onValidateVal.isEmpty) {
-                return "Enter Username";
+                return "Enter Mail";
               }
               return null;
             },
@@ -210,7 +228,7 @@ class _LoginPageState extends State<LoginPage> {
                 "Login",
               ),
               style: ElevatedButton.styleFrom(
-                primary: HexColor("#283B71"),
+                backgroundColor: HexColor("#283B71"),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
