@@ -16,6 +16,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool isAPIcallProcess = false;
   bool hidePassword = true;
+  String selectedRole = "Customer";
   GlobalKey<FormState> globalformkey = GlobalKey<FormState>();
   String? username;
   String? password;
@@ -35,7 +36,11 @@ class _LoginPageState extends State<LoginPage> {
         );
 
         if (userCredential.user != null) {
-          Navigator.pushReplacementNamed(context, "/home");
+          if (selectedRole == "Customer") {
+            Navigator.pushReplacementNamed(context, "/customer_home");
+          } else {
+            Navigator.pushReplacementNamed(context, "/cook_home");
+          }
         } else {
           // Show error if login fails (though unlikely with Firebase)
           FormHelper.showSimpleAlertDialog(
@@ -219,18 +224,35 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
           SizedBox(
+            height: 50,
+          ),
+          SizedBox(
             height: 20,
           ),
           Center(
-            child: ElevatedButton(
-              onPressed: _loginUser,
-              child: Text(
-                "Login",
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: HexColor("#283B71"),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8, // Set width for the button
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    selectedRole = "Customer";
+                  });
+                  _loginUser();
+                },
+                child: Text(
+                  "Login as Customer",
+                  style: TextStyle(
+                    color: Colors.white, // Set text color to white
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HexColor("#283B71"),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Colors.white, // Set border color to white
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -238,6 +260,61 @@ class _LoginPageState extends State<LoginPage> {
           SizedBox(
             height: 20,
           ),
+          Row(
+            children: [
+              Expanded(
+                child: Divider(
+                  thickness: 1,
+                  color: Colors.white,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Text(
+                  "OR",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              Expanded(
+                child: Divider(
+                  thickness: 1,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          Center(
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8, // Set width for the button
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    selectedRole = "Cook";
+                  });
+                  _loginUser();
+                },
+                child: Text(
+                  "Login as Cook",
+                  style: TextStyle(
+                    color: Colors.white, // Set text color to white
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HexColor("#283B71"),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: Colors.white, // Set border color to white
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           SizedBox(
             height: 20,
           ),

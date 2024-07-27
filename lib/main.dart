@@ -1,9 +1,10 @@
 import 'package:cooking_app/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:cooking_app/home_page.dart';
 import 'package:cooking_app/login_page.dart';
 import 'package:cooking_app/register_page.dart';
+import 'package:cooking_app/customer_home_page.dart';
+import 'package:cooking_app/cook_home_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +30,8 @@ class MyApp extends StatelessWidget {
       routes: {
         "/": (context) => const LoginPage(),
         "/register": (context) => const RegisterPage(),
-        "/home": (context) => const HomePage(),
+        "/customer_home": (context) => const CustomerHomePage(),
+        "/cook_home": (context) => const CookHomePage(),
       },
     );
   }
