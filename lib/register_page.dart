@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/FormHelper.dart';
 import 'package:snippet_coder_utils/ProgressHUD.dart';
@@ -210,17 +211,51 @@ class _RegisterPageState extends State<RegisterPage> {
               onPressed: _registerUser,
               child: Text(
                 "Register",
+                style: TextStyle(
+                  color: Colors.white, // Set text color to white
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: HexColor("#283B71"),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(
+                    color: Colors.white, // Set border color to white
+                  ),
                 ),
               ),
             ),
           ),
           SizedBox(
             height: 20,
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 25, top: 10),
+              child: RichText(
+                text: TextSpan(
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 14.0,
+                  ),
+                  children: <TextSpan>[
+                    TextSpan(text: "Already have a Account?"),
+                    TextSpan(
+                      text: " Sign In",
+                      style: TextStyle(
+                        color: Colors.white,
+                        decoration: TextDecoration.underline,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          Navigator.pushNamed(context, "/");
+                        },
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
