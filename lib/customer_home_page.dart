@@ -75,7 +75,6 @@ class CustomerHomePage extends StatelessWidget {
                       Navigator.pop(context);
                     },
                   ),
-                  // Empty container to push 'Accounts' tile to the bottom
                   Spacer(),
                 ],
               ),
