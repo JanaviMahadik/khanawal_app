@@ -1,5 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:snippet_coder_utils/hex_color.dart'; // Import HexColor if not already
+import 'package:snippet_coder_utils/hex_color.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 
 class CookHomePage extends StatefulWidget {
   const CookHomePage({Key? key}) : super(key: key);
@@ -11,42 +15,76 @@ class CookHomePage extends StatefulWidget {
 class _CookHomePageState extends State<CookHomePage> {
   final List<Item> _items = [];
 
-  void _addItem(String title, String description) {
+  void _addItem(String title, String description, String fileUrl) {
     setState(() {
-      _items.add(Item(title: title, description: description));
+      _items.add(Item(title: title, description: description, fileUrl: fileUrl));
+    });
+
+    FirebaseFirestore.instance.collection('cooking_items').add({
+      'title': title,
+      'description': description,
+      'fileUrl': fileUrl,
     });
   }
 
-  void _showAddItemDialog() {
+  void _showAddItemDialog() async {
     final TextEditingController titleController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
+    PlatformFile? pickedFile;
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Add New Item'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-              ),
-              TextField(
-                controller: descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: 'Title'),
+                ),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    // File Picker
+                    FilePickerResult? result = await FilePicker.platform.pickFiles();
+                    if (result != null && result.files.isNotEmpty) {
+                      pickedFile = result.files.first;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('File selected: ${pickedFile?.name}')),
+                      );
+                    }
+                  },
+                  child: const Text('Select File'),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 final title = titleController.text;
                 final description = descriptionController.text;
-                if (title.isNotEmpty && description.isNotEmpty) {
-                  _addItem(title, description);
-                  Navigator.of(context).pop();
+                if (title.isNotEmpty && description.isNotEmpty && pickedFile != null) {
+                  try {
+
+                    String fileUrl = await _uploadFile(pickedFile!);
+                    _addItem(title, description, fileUrl);
+                    Navigator.of(context).pop();
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error uploading file: $e')),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please fill all fields and select a file')),
+                  );
                 }
               },
               child: const Text('Add'),
@@ -61,14 +99,30 @@ class _CookHomePageState extends State<CookHomePage> {
     );
   }
 
+  Future<String> _uploadFile(PlatformFile pickedFile) async {
+    File file = File(pickedFile.path!);
+    try {
+
+      Reference ref = FirebaseStorage.instance.ref().child('uploads/${pickedFile.name}');
+
+      await ref.putFile(file);
+
+      String downloadUrl = await ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('Error uploading file: $e');
+      throw e;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: HexColor("#283B71"), // Use the same background color
+      backgroundColor: HexColor("#283B71"),
       appBar: AppBar(
         title: const Text("Cook Home Page"),
-        backgroundColor: HexColor("#283B71"), // Match AppBar color with LoginPage
-        foregroundColor: Colors.white, // Text color for the AppBar
+        backgroundColor: HexColor("#283B71"),
+        foregroundColor: Colors.white,
         leading: Builder(
           builder: (BuildContext context) {
             return Padding(
@@ -92,27 +146,49 @@ class _CookHomePageState extends State<CookHomePage> {
           final item = _items[index];
           return Card(
             margin: const EdgeInsets.all(8.0),
-            color: Colors.white, // Card background color
+            color: Colors.white,
             child: ListTile(
-              title: Text(item.title, style: TextStyle(color: HexColor("#283B71"))), // Text color to match theme
-              subtitle: Text(item.description),
+              contentPadding: const EdgeInsets.all(10.0),
+              title: Row(
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.0),
+                      image: DecorationImage(
+                        image: NetworkImage(item.fileUrl),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10), // Space between image and text
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.title, style: TextStyle(color: HexColor("#283B71"), fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 5), // Space between title and description
+                        Text(item.description, style: TextStyle(color: HexColor("#283B71"))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
       ),
       floatingActionButton: Container(
-        margin: const EdgeInsets.only(bottom: 20.0), // Add spacing from the bottom
+        margin: const EdgeInsets.only(bottom: 20.0),
         child: FloatingActionButton(
           onPressed: _showAddItemDialog,
-          child: const Icon(Icons.add, color: Colors.white), // Plus sign color
+          child: const Icon(Icons.add, color: Colors.white),
           tooltip: 'Add Item',
-          backgroundColor: HexColor("#283B71"), // Background color for the button
+          backgroundColor: HexColor("#283B71"),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30.0), // Make it circular
-            side: BorderSide(
-              color: Colors.white, // Border color
-              width: 2.0, // Border width
-            ),
+            borderRadius: BorderRadius.circular(30.0),
+            side: BorderSide(color: Colors.white, width: 2.0),
           ),
         ),
       ),
@@ -138,32 +214,23 @@ class _CookHomePageState extends State<CookHomePage> {
                     ),
                   ),
                   ListTile(
-                    title: Text(
-                      'Profile',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    title: Text('Profile', style: TextStyle(color: Colors.white)),
                     onTap: () {
                       Navigator.pop(context);
                     },
                   ),
                   ListTile(
-                    title: Text(
-                      'Settings',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    title: Text('Settings', style: TextStyle(color: Colors.white)),
                     onTap: () {
                       Navigator.pop(context);
                     },
                   ),
-                  Spacer(),
+                  const Spacer(),
                 ],
               ),
             ),
             ListTile(
-              title: Text(
-                'Accounts',
-                style: TextStyle(color: Colors.white),
-              ),
+              title: Text('Accounts', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
               },
@@ -178,6 +245,7 @@ class _CookHomePageState extends State<CookHomePage> {
 class Item {
   final String title;
   final String description;
+  final String fileUrl;
 
-  Item({required this.title, required this.description});
+  Item({required this.title, required this.description, required this.fileUrl});
 }
