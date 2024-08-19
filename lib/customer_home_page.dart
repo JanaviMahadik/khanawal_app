@@ -1,8 +1,27 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
 
-class CustomerHomePage extends StatelessWidget {
+class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({Key? key}) : super(key: key);
+
+  @override
+  _CustomerHomePageState createState() => _CustomerHomePageState();
+}
+
+class _CustomerHomePageState extends State<CustomerHomePage> {
+  bool _isAccountsExpanded = false;
+
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacementNamed(context, '/');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error signing out: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +83,7 @@ class CustomerHomePage extends StatelessWidget {
                     ),
                     onTap: () {
                       Navigator.pop(context);
+                      // Navigate to profile page
                     },
                   ),
                   ListTile(
@@ -73,20 +93,48 @@ class CustomerHomePage extends StatelessWidget {
                     ),
                     onTap: () {
                       Navigator.pop(context);
+                      // Navigate to settings page
                     },
                   ),
-                  Spacer(),
                 ],
               ),
             ),
-            ListTile(
+            ExpansionTile(
               title: Text(
                 'Accounts',
                 style: TextStyle(color: Colors.white),
               ),
-              onTap: () {
-                Navigator.pop(context);
+              trailing: Icon(
+                _isAccountsExpanded ? Icons.expand_less : Icons.expand_more,
+                color: Colors.white,
+              ),
+              onExpansionChanged: (bool expanded) {
+                setState(() {
+                  _isAccountsExpanded = expanded;
+                });
               },
+              children: <Widget>[
+                ListTile(
+                  title: Text(
+                    'Sign Out',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _signOut(context);
+                  },
+                ),
+                ListTile(
+                  title: Text(
+                    'Switch Account',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _signOut(context);
+                  },
+                ),
+              ],
             ),
           ],
         ),

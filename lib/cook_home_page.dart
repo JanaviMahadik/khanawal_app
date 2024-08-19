@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -14,6 +15,18 @@ class CookHomePage extends StatefulWidget {
 
 class _CookHomePageState extends State<CookHomePage> {
   final List<Item> _items = [];
+  bool _isAccountsExpanded = false;
+
+  Future<void> _signOut(BuildContext context) async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacementNamed(context, '/');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error signing out: $e')),
+      );
+    }
+  }
 
   void _addItem(String title, String description, String fileUrl) {
     setState(() {
@@ -214,26 +227,64 @@ class _CookHomePageState extends State<CookHomePage> {
                     ),
                   ),
                   ListTile(
-                    title: Text('Profile', style: TextStyle(color: Colors.white)),
+                    title: Text(
+                      'Profile',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     onTap: () {
                       Navigator.pop(context);
+                      // Navigate to profile page
                     },
                   ),
                   ListTile(
-                    title: Text('Settings', style: TextStyle(color: Colors.white)),
+                    title: Text(
+                      'Settings',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     onTap: () {
                       Navigator.pop(context);
+                      // Navigate to settings page
                     },
                   ),
-                  const Spacer(),
                 ],
               ),
             ),
-            ListTile(
-              title: Text('Accounts', style: TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(context);
+            ExpansionTile(
+              title: Text(
+                'Accounts',
+                style: TextStyle(color: Colors.white),
+              ),
+              trailing: Icon(
+                _isAccountsExpanded ? Icons.expand_less : Icons.expand_more,
+                color: Colors.white,
+              ),
+              onExpansionChanged: (bool expanded) {
+                setState(() {
+                  _isAccountsExpanded = expanded;
+                });
               },
+              children: <Widget>[
+                ListTile(
+                  title: Text(
+                    'Sign Out',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _signOut(context);
+                  },
+                ),
+                ListTile(
+                  title: Text(
+                    'Switch Account',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _signOut(context);
+                  },
+                ),
+              ],
             ),
           ],
         ),
