@@ -1,3 +1,4 @@
+import 'package:cooking_app/profile_setting_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
@@ -11,6 +12,7 @@ class CustomerHomePage extends StatefulWidget {
 
 class _CustomerHomePageState extends State<CustomerHomePage> {
   bool _isAccountsExpanded = false;
+  String? _profilePhotoUrl;
 
   Future<void> _signOut(BuildContext context) async {
     try {
@@ -21,6 +23,22 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         SnackBar(content: Text('Error signing out: $e')),
       );
     }
+  }
+
+  Future<void> _getUserProfilePhoto() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.reload();
+      setState(() {
+        _profilePhotoUrl = user.photoURL;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserProfilePhoto();
   }
 
   @override
@@ -38,7 +56,9 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   Scaffold.of(context).openDrawer();
                 },
                 child: CircleAvatar(
-                  backgroundImage: AssetImage('assets/khanawal_logo.png'),
+                  backgroundImage: _profilePhotoUrl != null
+                      ? NetworkImage(_profilePhotoUrl!)
+                      : AssetImage('assets/khanawal_logo.png') as ImageProvider,
                   radius: 20,
                 ),
               ),
@@ -81,9 +101,16 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                       'Profile',
                       style: TextStyle(color: Colors.white),
                     ),
-                    onTap: () {
+                    onTap: () async {
                       Navigator.pop(context);
-                      // Navigate to profile page
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ProfileSettingsPage()),
+                      );
+
+                      if (result == true) {
+                        _getUserProfilePhoto();
+                      }
                     },
                   ),
                   ListTile(
