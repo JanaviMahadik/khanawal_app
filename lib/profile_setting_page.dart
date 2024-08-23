@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
+import 'profile_photo_service.dart';
 
 class ProfileSettingsPage extends StatefulWidget {
   const ProfileSettingsPage({Key? key}) : super(key: key);
@@ -14,8 +14,6 @@ class ProfileSettingsPage extends StatefulWidget {
 
 class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   File? _selectedProfilePhoto;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
 
   Future<void> _selectProfilePhoto() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -36,14 +34,13 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   Future<void> _updateProfilePhoto() async {
     if (_selectedProfilePhoto != null) {
       try {
-        User? user = _auth.currentUser;
-        String fileName = 'profile_photos/${user!.uid}.png';
+        ProfilePhotoService photoService = ProfilePhotoService();
+        String? downloadUrl = await photoService.updateProfilePhoto(_selectedProfilePhoto!);
 
-        await _storage.ref(fileName).putFile(_selectedProfilePhoto!);
-
-        String downloadUrl = await _storage.ref(fileName).getDownloadURL();
-
-        await user.updatePhotoURL(downloadUrl);
+        User? user = FirebaseAuth.instance.currentUser;
+        if (user != null && downloadUrl != null) {
+          await user.updatePhotoURL(downloadUrl);
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Profile photo updated!')),
@@ -61,6 +58,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +104,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
             ElevatedButton(
               onPressed: _updateProfilePhoto,
               style: ElevatedButton.styleFrom(
-                primary: HexColor("#283B71"),
+                backgroundColor: HexColor("#283B71"),
                 padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.0),

@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'package:cooking_app/profile_setting_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
+
 
 class CookHomePage extends StatefulWidget {
   const CookHomePage({Key? key}) : super(key: key);
@@ -16,6 +18,7 @@ class CookHomePage extends StatefulWidget {
 class _CookHomePageState extends State<CookHomePage> {
   final List<Item> _items = [];
   bool _isAccountsExpanded = false;
+  String? _profilePhotoUrl;
 
   Future<void> _signOut(BuildContext context) async {
     try {
@@ -26,6 +29,22 @@ class _CookHomePageState extends State<CookHomePage> {
         SnackBar(content: Text('Error signing out: $e')),
       );
     }
+  }
+
+  Future<void> _getUserProfilePhoto() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.reload();
+      setState(() {
+        _profilePhotoUrl = user.photoURL;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserProfilePhoto();
   }
 
   void _addItem(String title, String description, String fileUrl) {
@@ -131,11 +150,9 @@ class _CookHomePageState extends State<CookHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: HexColor("#283B71"),
       appBar: AppBar(
         title: const Text("Cook Home Page"),
         backgroundColor: HexColor("#283B71"),
-        foregroundColor: Colors.white,
         leading: Builder(
           builder: (BuildContext context) {
             return Padding(
@@ -145,7 +162,9 @@ class _CookHomePageState extends State<CookHomePage> {
                   Scaffold.of(context).openDrawer();
                 },
                 child: CircleAvatar(
-                  backgroundImage: AssetImage('assets/khanawal_logo.png'),
+                  backgroundImage: _profilePhotoUrl != null
+                      ? NetworkImage(_profilePhotoUrl!)
+                      : AssetImage('assets/khanawal_logo.png') as ImageProvider,
                   radius: 20,
                 ),
               ),
@@ -231,9 +250,16 @@ class _CookHomePageState extends State<CookHomePage> {
                       'Profile',
                       style: TextStyle(color: Colors.white),
                     ),
-                    onTap: () {
+                    onTap: () async {
                       Navigator.pop(context);
-                      // Navigate to profile page
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ProfileSettingsPage()),
+                      );
+
+                      if (result == true) {
+                        _getUserProfilePhoto();
+                      }
                     },
                   ),
                   ListTile(
