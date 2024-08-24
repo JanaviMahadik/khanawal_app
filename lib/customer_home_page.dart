@@ -13,6 +13,7 @@ class CustomerHomePage extends StatefulWidget {
 class _CustomerHomePageState extends State<CustomerHomePage> {
   bool _isAccountsExpanded = false;
   String? _profilePhotoUrl;
+  String? _displayName;
 
   Future<void> _signOut(BuildContext context) async {
     try {
@@ -35,17 +36,38 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     }
   }
 
+  Future<void> _getDisplayName() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.reload();
+      setState(() {
+        _displayName = user.displayName;
+      });
+    }
+  }
+
+  Future<void> _updateDisplayName(String newName) async {
+    setState(() {
+      _displayName = newName;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _getUserProfilePhoto();
+    _getDisplayName();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Customer Home Page"),
+        title: Text(_displayName ?? "Customer Home Page",
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: HexColor("#283B71"),
         leading: Builder(
           builder: (BuildContext context) {
@@ -105,11 +127,16 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                       Navigator.pop(context);
                       final result = await Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const ProfileSettingsPage()),
+                        MaterialPageRoute(
+                          builder: (context) => ProfileSettingsPage(
+                            onUpdateDisplayName: _updateDisplayName,
+                          ),
+                        ),
                       );
 
                       if (result == true) {
                         _getUserProfilePhoto();
+                        _getDisplayName();
                       }
                     },
                   ),

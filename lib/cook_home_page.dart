@@ -19,6 +19,7 @@ class _CookHomePageState extends State<CookHomePage> {
   final List<Item> _items = [];
   bool _isAccountsExpanded = false;
   String? _profilePhotoUrl;
+  String? _displayName;
 
   Future<void> _signOut(BuildContext context) async {
     try {
@@ -41,10 +42,27 @@ class _CookHomePageState extends State<CookHomePage> {
     }
   }
 
+  Future<void> _getDisplayName() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.reload();
+      setState(() {
+        _displayName = user.displayName;
+      });
+    }
+  }
+
+  Future<void> _updateDisplayName(String newName) async {
+    setState(() {
+      _displayName = newName;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _getUserProfilePhoto();
+    _getDisplayName();
   }
 
   void _addItem(String title, String description, String fileUrl) {
@@ -151,7 +169,11 @@ class _CookHomePageState extends State<CookHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Cook Home Page"),
+        title: Text(_displayName ?? "Cook Home Page",
+        style: TextStyle(
+        color: Colors.white,
+    ),
+        ),
         backgroundColor: HexColor("#283B71"),
         leading: Builder(
           builder: (BuildContext context) {
@@ -194,13 +216,13 @@ class _CookHomePageState extends State<CookHomePage> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10), // Space between image and text
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(item.title, style: TextStyle(color: HexColor("#283B71"), fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 5), // Space between title and description
+                        const SizedBox(height: 5),
                         Text(item.description, style: TextStyle(color: HexColor("#283B71"))),
                       ],
                     ),
@@ -254,11 +276,16 @@ class _CookHomePageState extends State<CookHomePage> {
                       Navigator.pop(context);
                       final result = await Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const ProfileSettingsPage()),
+                        MaterialPageRoute(
+                          builder: (context) => ProfileSettingsPage(
+                            onUpdateDisplayName: _updateDisplayName,
+                          ),
+                        ),
                       );
 
                       if (result == true) {
                         _getUserProfilePhoto();
+                        _getDisplayName();
                       }
                     },
                   ),

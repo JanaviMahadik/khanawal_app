@@ -6,7 +6,9 @@ import 'package:snippet_coder_utils/hex_color.dart';
 import 'profile_photo_service.dart';
 
 class ProfileSettingsPage extends StatefulWidget {
-  const ProfileSettingsPage({Key? key}) : super(key: key);
+  final Function(String) onUpdateDisplayName;
+
+  const ProfileSettingsPage({Key? key, required this.onUpdateDisplayName}) : super(key: key);
 
   @override
   _ProfileSettingsPageState createState() => _ProfileSettingsPageState();
@@ -14,6 +16,23 @@ class ProfileSettingsPage extends StatefulWidget {
 
 class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   File? _selectedProfilePhoto;
+  String? _username;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        _username = user.displayName ?? '';
+      });
+    }
+  }
 
   Future<void> _selectProfilePhoto() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -31,34 +50,35 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     }
   }
 
-  Future<void> _updateProfilePhoto() async {
-    if (_selectedProfilePhoto != null) {
+  Future<void> _updateProfile() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
       try {
-        ProfilePhotoService photoService = ProfilePhotoService();
-        String? downloadUrl = await photoService.updateProfilePhoto(_selectedProfilePhoto!);
-
         User? user = FirebaseAuth.instance.currentUser;
-        if (user != null && downloadUrl != null) {
-          await user.updatePhotoURL(downloadUrl);
+        if (user != null) {
+          await user.updateDisplayName(_username);
+          widget.onUpdateDisplayName(_username!);
+
+          if (_selectedProfilePhoto != null) {
+            ProfilePhotoService photoService = ProfilePhotoService();
+            String? downloadUrl = await photoService.updateProfilePhoto(_selectedProfilePhoto!);
+            await user.updatePhotoURL(downloadUrl);
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Profile updated successfully')),
+          );
+
+          Navigator.pop(context, true);
         }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Profile photo updated!')),
-        );
-
-        Navigator.pop(context, true);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating profile photo: $e')),
+          SnackBar(content: Text('Error updating profile: $e')),
         );
       }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a photo first.')),
-      );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -69,57 +89,77 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 32.0),
-            Text(
-              'Update Profile Photo',
-              style: TextStyle(
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
-                color: HexColor("#283B71"),
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            GestureDetector(
-              onTap: _selectProfilePhoto,
-              child: _selectedProfilePhoto != null
-                  ? CircleAvatar(
-                radius: 80,
-                backgroundImage: FileImage(_selectedProfilePhoto!),
-              )
-                  : CircleAvatar(
-                radius: 80,
-                backgroundColor: HexColor("#283B71"),
-                child: Icon(
-                  Icons.add_a_photo,
-                  color: Colors.white,
-                  size: 40.0,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: _updateProfilePhoto,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: HexColor("#283B71"),
-                padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-              child: const Text(
-                'Save Changes',
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 32.0),
+              Text(
+                'Update Profile',
                 style: TextStyle(
-                  fontSize: 16.0,
+                  fontSize: 24.0,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: HexColor("#283B71"),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16.0),
+              GestureDetector(
+                onTap: _selectProfilePhoto,
+                child: _selectedProfilePhoto != null
+                    ? CircleAvatar(
+                  radius: 80,
+                  backgroundImage: FileImage(_selectedProfilePhoto!),
+                )
+                    : CircleAvatar(
+                  radius: 80,
+                  backgroundColor: HexColor("#283B71"),
+                  child: Icon(
+                    Icons.add_a_photo,
+                    color: Colors.white,
+                    size: 40.0,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              TextFormField(
+                initialValue: _username,
+                decoration: InputDecoration(
+                  labelText: 'Username',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a username';
+                  }
+                  return null;
+                },
+                onSaved: (value) {
+                  _username = value;
+                },
+              ),
+              const SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: _updateProfile,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: HexColor("#283B71"),
+                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+                child: const Text(
+                  'Save Changes',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
