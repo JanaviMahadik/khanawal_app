@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cooking_app/profile_setting_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
 
@@ -99,6 +100,78 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _deleteAccount() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        final userId = user.uid;
+
+        if (user.photoURL != null) {
+          final ref = FirebaseStorage.instance.refFromURL(user.photoURL!);
+          await ref.delete();
+        }
+
+        final collections = [
+          'cooking_items',
+          'users',
+        ];
+
+        for (var collection in collections) {
+          final querySnapshot = await FirebaseFirestore.instance
+              .collection(collection)
+              .where('userId', isEqualTo: userId)
+              .get();
+          for (var doc in querySnapshot.docs) {
+            await doc.reference.delete();
+          }
+        }
+
+        await FirebaseFirestore.instance.collection('users').doc(userId).delete();
+        await user.delete();
+
+        Navigator.pushReplacementNamed(context, '/');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting account: $e')),
+        );
+      }
+    }
+  }
+
+  void _showDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Account'),
+          content: Text('Are you sure you want to delete your account? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _deleteAccount();
+              },
+              child: Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   void initState() {
     super.initState();
     _getUserProfilePhoto();
@@ -107,12 +180,6 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     _searchController.addListener(() {
       _filterItems(_searchController.text);
     });
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
@@ -290,12 +357,12 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 ),
                 ListTile(
                   title: Text(
-                    'Switch Account',
+                    'Delete Account',
                     style: TextStyle(color: Colors.white),
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    _signOut(context);
+                    _showDeleteAccountDialog();
                   },
                 ),
               ],

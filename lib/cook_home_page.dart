@@ -58,6 +58,70 @@ class _CookHomePageState extends State<CookHomePage> {
     });
   }
 
+  Future<void> _deleteAccount() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        final userId = user.uid;
+
+        QuerySnapshot itemsSnapshot = await FirebaseFirestore.instance
+            .collection('cooking_items')
+            .where('userId', isEqualTo: userId)
+            .get();
+
+        for (var doc in itemsSnapshot.docs) {
+          String fileUrl = doc['fileUrl'];
+
+          Reference storageRef = FirebaseStorage.instance.refFromURL(fileUrl);
+          await storageRef.delete();
+          await doc.reference.delete();
+        }
+
+        if (_profilePhotoUrl != null && _profilePhotoUrl!.isNotEmpty) {
+          Reference profilePhotoRef = FirebaseStorage.instance.refFromURL(_profilePhotoUrl!);
+          await profilePhotoRef.delete();
+        }
+
+        await FirebaseFirestore.instance.collection('users').doc(userId).delete();
+        await user.delete();
+
+        Navigator.pushReplacementNamed(context, '/');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting account: $e')),
+        );
+      }
+    }
+  }
+
+  void _showDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Account'),
+          content: Text('Are you sure you want to delete your account? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _deleteAccount();
+              },
+              child: Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -354,12 +418,12 @@ class _CookHomePageState extends State<CookHomePage> {
                 ),
                 ListTile(
                   title: Text(
-                    'Switch Account',
+                    'Delete Account',
                     style: TextStyle(color: Colors.white),
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    _signOut(context);
+                    _showDeleteAccountDialog();
                   },
                 ),
               ],
