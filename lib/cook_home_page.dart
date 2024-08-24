@@ -63,18 +63,23 @@ class _CookHomePageState extends State<CookHomePage> {
     super.initState();
     _getUserProfilePhoto();
     _getDisplayName();
+    _fetchUserItems();
   }
 
   void _addItem(String title, String description, String fileUrl) {
-    setState(() {
-      _items.add(Item(title: title, description: description, fileUrl: fileUrl));
-    });
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      FirebaseFirestore.instance.collection('cooking_items').add({
+        'title': title,
+        'description': description,
+        'fileUrl': fileUrl,
+        'userId': user.uid,
+      });
 
-    FirebaseFirestore.instance.collection('cooking_items').add({
-      'title': title,
-      'description': description,
-      'fileUrl': fileUrl,
-    });
+      setState(() {
+        _items.add(Item(title: title, description: description, fileUrl: fileUrl));
+      });
+    }
   }
 
   void _showAddItemDialog() async {
@@ -162,6 +167,27 @@ class _CookHomePageState extends State<CookHomePage> {
     } catch (e) {
       print('Error uploading file: $e');
       throw e;
+    }
+  }
+
+  Future<void> _fetchUserItems() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('cooking_items')
+          .where('userId', isEqualTo: user.uid)
+          .get();
+
+      setState(() {
+        _items.clear();
+        for (var doc in querySnapshot.docs) {
+          _items.add(Item(
+            title: doc['title'],
+            description: doc['description'],
+            fileUrl: doc['fileUrl'],
+          ));
+        }
+      });
     }
   }
 
@@ -296,7 +322,6 @@ class _CookHomePageState extends State<CookHomePage> {
                     ),
                     onTap: () {
                       Navigator.pop(context);
-                      // Navigate to settings page
                     },
                   ),
                 ],
