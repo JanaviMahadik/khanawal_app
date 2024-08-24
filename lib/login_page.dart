@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:snippet_coder_utils/FormHelper.dart';
 import 'package:snippet_coder_utils/ProgressHUD.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
@@ -16,9 +17,8 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool isAPIcallProcess = false;
   bool hidePassword = true;
-  String selectedRole = "Customer";
   GlobalKey<FormState> globalformkey = GlobalKey<FormState>();
-  String? username;
+  String? email;
   String? password;
 
   Future<void> _loginUser() async {
@@ -31,43 +31,64 @@ class _LoginPageState extends State<LoginPage> {
 
       try {
         UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: username!,
+          email: email!,
           password: password!,
         );
 
         if (userCredential.user != null) {
-          if (selectedRole == "Customer") {
+
+          String role = await _getUserRole(userCredential.user!.uid);
+
+          if (role == "customer") {
             Navigator.pushReplacementNamed(context, "/customer_home");
-          } else {
+          } else if (role == "cook") {
             Navigator.pushReplacementNamed(context, "/cook_home");
+          } else {
+
+            FormHelper.showSimpleAlertDialog(
+              context,
+              "Khanawal",
+              "Unknown user role",
+              "OK",
+                  () {
+                Navigator.of(context).pop();
+              },
+            );
           }
-        } else {
-          // Show error if login fails (though unlikely with Firebase)
-          FormHelper.showSimpleAlertDialog(
-            context,
-            "Khanawal",
-            "Invalid username or password",
-            "OK",
-                () {
-              Navigator.of(context).pop();
-            },
-          );
         }
       } on FirebaseAuthException catch (e) {
-        // Handle FirebaseAuth exceptions
+
+        String errorMessage;
         if (e.code == 'user-not-found') {
-          print('No user found for that email.');
+          errorMessage = 'No user found for that email.';
         } else if (e.code == 'wrong-password') {
-          print('Wrong password provided for that user.');
+          errorMessage = 'Wrong password provided for that user.';
         } else {
-          print(e.toString());
+          errorMessage = e.toString();
         }
+        FormHelper.showSimpleAlertDialog(
+          context,
+          "Khanawal",
+          errorMessage,
+          "OK",
+              () {
+            Navigator.of(context).pop();
+          },
+        );
       } finally {
         setState(() {
           isAPIcallProcess = false;
         });
       }
     }
+  }
+
+  Future<String> _getUserRole(String uid) async {
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+    if (userDoc.exists && userDoc['role'] != null) {
+      return userDoc['role'] as String;
+    }
+    return 'unknown';
   }
 
   Future<void> _resetPassword() async {
@@ -89,7 +110,7 @@ class _LoginPageState extends State<LoginPage> {
                     await FirebaseAuth.instance.sendPasswordResetEmail(
                       email: emailController.text,
                     );
-                    Navigator.of(context).pop(); // Close the initial dialog
+                    Navigator.of(context).pop();
                     await showDialog(
                       context: context,
                       builder: (context) {
@@ -99,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
                           actions: [
                             TextButton(
                               onPressed: () {
-                                Navigator.of(context).pop(); // Close the confirmation dialog
+                                Navigator.of(context).pop();
                               },
                               child: Text('OK'),
                             ),
@@ -119,7 +140,6 @@ class _LoginPageState extends State<LoginPage> {
       },
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -195,15 +215,15 @@ class _LoginPageState extends State<LoginPage> {
           FormHelper.inputFieldWidget(
             context,
             '\ue7fd',
-            "mail",
+            "email",
                 (onValidateVal) {
               if (onValidateVal.isEmpty) {
-                return "Enter Mail";
+                return "Enter Email";
               }
               return null;
             },
                 (onSavedVal) {
-              username = onSavedVal;
+              email = onSavedVal;
             },
             borderFocusColor: Colors.white,
             prefixIconColor: Colors.white,
@@ -280,18 +300,13 @@ class _LoginPageState extends State<LoginPage> {
           ),
           Center(
             child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8, // Set width for the button
+              width: MediaQuery.of(context).size.width * 0.8,
               child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    selectedRole = "Customer";
-                  });
-                  _loginUser();
-                },
+                onPressed: _loginUser,
                 child: Text(
-                  "Login as Customer",
+                  "Login",
                   style: TextStyle(
-                    color: Colors.white, // Set text color to white
+                    color: Colors.white,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -299,71 +314,13 @@ class _LoginPageState extends State<LoginPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                     side: BorderSide(
-                      color: Colors.white, // Set border color to white
+                      color: Colors.white,
                     ),
                   ),
                 ),
               ),
             ),
           ),
-          SizedBox(
-            height: 20,
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: Divider(
-                  thickness: 1,
-                  color: Colors.white,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Text(
-                  "OR",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-              Expanded(
-                child: Divider(
-                  thickness: 1,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(
-            height: 20,
-          ),
-          Center(
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8, // Set width for the button
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    selectedRole = "Cook";
-                  });
-                  _loginUser();
-                },
-                child: Text(
-                  "Login as Cook",
-                  style: TextStyle(
-                    color: Colors.white, // Set text color to white
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: HexColor("#283B71"),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    side: BorderSide(
-                      color: Colors.white, // Set border color to white
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
           SizedBox(
             height: 20,
           ),

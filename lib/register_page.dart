@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ class _RegisterPageState extends State<RegisterPage> {
   String? username;
   String? password;
   String? email;
+  String? selectedRole;
 
   Future<void> _registerUser() async {
     if (globalformkey.currentState!.validate()) {
@@ -37,6 +39,7 @@ class _RegisterPageState extends State<RegisterPage> {
         );
 
         await userCredential.user!.updateDisplayName(username);
+        await setUserRole(selectedRole!);
 
         Navigator.pushReplacementNamed(context, "/");
       } catch (e) {
@@ -51,6 +54,15 @@ class _RegisterPageState extends State<RegisterPage> {
           isAPIcallProcess = false;
         });
       }
+    }
+  }
+
+  Future<void> setUserRole(String role) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'role': role,
+      });
     }
   }
 
@@ -206,13 +218,41 @@ class _RegisterPageState extends State<RegisterPage> {
           SizedBox(
             height: 20,
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: DropdownButtonFormField<String>(
+              value: selectedRole,
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedRole = newValue;
+                });
+              },
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                hintText: "Select Role",
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10.0),
+              ),
+              items: <String>['cook', 'customer']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              validator: (value) => value == null ? 'Please select a role' : null,
+            ),
+          ),
           Center(
             child: ElevatedButton(
               onPressed: _registerUser,
               child: Text(
                 "Register",
                 style: TextStyle(
-                  color: Colors.white, // Set text color to white
+                  color: Colors.white,
                 ),
               ),
               style: ElevatedButton.styleFrom(
@@ -220,7 +260,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                   side: BorderSide(
-                    color: Colors.white, // Set border color to white
+                    color: Colors.white,
                   ),
                 ),
               ),
