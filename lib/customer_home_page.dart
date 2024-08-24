@@ -17,7 +17,9 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   bool _isAccountsExpanded = false;
   String? _profilePhotoUrl;
   String? _displayName;
-  final List<Item> _items = [];
+  final List<Item> _allItems = [];
+  List<Item> _filteredItems = [];
+  final TextEditingController _searchController = TextEditingController();
 
   Future<void> _signOut(BuildContext context) async {
     try {
@@ -63,16 +65,19 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
           .get();
 
       setState(() {
-        _items.clear();
+        _allItems.clear();
+        _filteredItems.clear();
         for (var doc in querySnapshot.docs) {
           final data = doc.data() as Map<String, dynamic>?;
 
           if (data != null) {
-            _items.add(Item(
+            final item = Item(
               title: data['title'] ?? 'No Title',
               description: data['description'] ?? 'No Description',
               fileUrl: data['fileUrl'] ?? '',
-            ));
+            );
+            _allItems.add(item);
+            _filteredItems.add(item);
           }
         }
       });
@@ -81,12 +86,33 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     }
   }
 
+  void _filterItems(String query) {
+    final filteredItems = _allItems.where((item) {
+      final itemTitle = item.title.toLowerCase();
+      final searchQuery = query.toLowerCase();
+      return itemTitle.contains(searchQuery);
+    }).toList();
+
+    setState(() {
+      _filteredItems = filteredItems;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _getUserProfilePhoto();
     _getDisplayName();
     _fetchAllItems();
+    _searchController.addListener(() {
+      _filterItems(_searchController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -117,11 +143,37 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
             );
           },
         ),
+      bottom: PreferredSize(
+        preferredSize: Size.fromHeight(40.0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    child: Container(
+    height: 30.0,
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Search by title...',
+              hintStyle: TextStyle(color: Colors.white70),
+              border: OutlineInputBorder(
+                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.2),
+              prefixIcon: Icon(Icons.search, color: Colors.white),
+            ),
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ),
-      body: ListView.builder(
-        itemCount: _items.length,
+    ),
+      ),
+      body: _filteredItems.isEmpty
+          ? Center(child: Text("No items available"))
+          : ListView.builder(
+        itemCount: _filteredItems.length,
         itemBuilder: (context, index) {
-          final item = _items[index];
+          final item = _filteredItems[index];
           return Card(
             margin: const EdgeInsets.all(8.0),
             color: Colors.white,
