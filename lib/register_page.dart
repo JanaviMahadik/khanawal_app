@@ -6,6 +6,8 @@ import 'package:snippet_coder_utils/FormHelper.dart';
 import 'package:snippet_coder_utils/ProgressHUD.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -41,6 +43,13 @@ class _RegisterPageState extends State<RegisterPage> {
         await userCredential.user!.updateDisplayName(username);
         await setUserRole(selectedRole!);
 
+        await _saveUserToMongoDB(
+          username: username!,
+          email: email!,
+          password: password!,
+          role: selectedRole!,
+        );
+
         Navigator.pushReplacementNamed(context, "/");
       } catch (e) {
         print("Error: $e");
@@ -54,6 +63,34 @@ class _RegisterPageState extends State<RegisterPage> {
           isAPIcallProcess = false;
         });
       }
+    }
+  }
+
+  Future<void> _saveUserToMongoDB({
+    required String username,
+    required String email,
+    required String password,
+    required String role,
+  }) async {
+    final url = 'http://192.168.31.174:3000/register';  // Replace with your backend API endpoint
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'username': username,
+        'email': email,
+        'password': password,
+        'role': role,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      print('User saved to MongoDB');
+    } else {
+      print('Failed to save user to MongoDB: ${response.body}');
     }
   }
 
