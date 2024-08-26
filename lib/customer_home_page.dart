@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
 
 import 'cook_home_page.dart';
+import 'item_details_page.dart';
 
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({Key? key}) : super(key: key);
@@ -76,6 +77,10 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
               title: data['title'] ?? 'No Title',
               description: data['description'] ?? 'No Description',
               fileUrl: data['fileUrl'] ?? '',
+              price: data['price'] ?? '',
+              gst: data['gst'] ?? '',
+              serviceCharges: data['serviceCharges'] ?? '',
+              totalPrice: data['totalPrice'] ?? '',
             );
             _allItems.add(item);
             _filteredItems.add(item);
@@ -264,14 +269,35 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item.title, style: TextStyle(color: HexColor("#283B71"), fontWeight: FontWeight.bold)),
+                        Text(item.title,
+                            style: TextStyle(
+                                color: HexColor("#283B71"),
+                                fontWeight: FontWeight.bold)),
                         const SizedBox(height: 5),
-                        Text(item.description, style: TextStyle(color: HexColor("#283B71"))),
+                        Text(item.description,
+                            style: TextStyle(
+                                color: HexColor("#283B71"))),
                       ],
                     ),
                   ),
                 ],
               ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ItemDetailsPage(
+                      title: item.title,
+                      description: item.description,
+                      fileUrl: item.fileUrl,
+                      price: item.price,
+                      gst: item.gst,
+                      serviceCharges: item.serviceCharges,
+                      totalPrice: item.totalPrice,
+                    ),
+                  ),
+                );
+              },
             ),
           );
         },

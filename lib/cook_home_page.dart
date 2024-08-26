@@ -130,18 +130,24 @@ class _CookHomePageState extends State<CookHomePage> {
     _fetchUserItems();
   }
 
-  void _addItem(String title, String description, String fileUrl) {
+  void _addItem(String title, String description, String fileUrl, double price, double gst, double serviceCharges, double totalPrice) {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       FirebaseFirestore.instance.collection('cooking_items').add({
         'title': title,
         'description': description,
         'fileUrl': fileUrl,
+        'price': price,
         'userId': user.uid,
+        'gst': gst,
+        'serviceCharges': serviceCharges,
+        'totalPrice': totalPrice,
       });
 
       setState(() {
-        _items.add(Item(title: title, description: description, fileUrl: fileUrl));
+        _items.add(Item(title: title, description: description, fileUrl: fileUrl, price: price, gst: gst,
+          serviceCharges: serviceCharges,
+          totalPrice: totalPrice,));
       });
     }
   }
@@ -149,6 +155,7 @@ class _CookHomePageState extends State<CookHomePage> {
   void _showAddItemDialog() async {
     final TextEditingController titleController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
+    final TextEditingController priceController = TextEditingController();
     PlatformFile? pickedFile;
 
     showDialog(
@@ -167,6 +174,11 @@ class _CookHomePageState extends State<CookHomePage> {
                 TextField(
                   controller: descriptionController,
                   decoration: const InputDecoration(labelText: 'Description'),
+                ),
+                TextField(
+                  controller: priceController,
+                  decoration: const InputDecoration(labelText: 'Price'),
+                  keyboardType: TextInputType.number,
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -189,11 +201,15 @@ class _CookHomePageState extends State<CookHomePage> {
               onPressed: () async {
                 final title = titleController.text;
                 final description = descriptionController.text;
+                final price = double.tryParse(priceController.text) ?? 0.0;
                 if (title.isNotEmpty && description.isNotEmpty && pickedFile != null) {
                   try {
+                    double gst = price * 0.12;
+                    double serviceCharges = price * 0.10;
+                    double totalPrice = price + gst + serviceCharges;
 
                     String fileUrl = await _uploadFile(pickedFile!);
-                    _addItem(title, description, fileUrl);
+                    _addItem(title, description, fileUrl, price, gst, serviceCharges, totalPrice);
                     Navigator.of(context).pop();
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -217,6 +233,7 @@ class _CookHomePageState extends State<CookHomePage> {
       },
     );
   }
+
 
   Future<String> _uploadFile(PlatformFile pickedFile) async {
     File file = File(pickedFile.path!);
@@ -249,6 +266,10 @@ class _CookHomePageState extends State<CookHomePage> {
             title: doc['title'],
             description: doc['description'],
             fileUrl: doc['fileUrl'],
+            price: doc['price'],
+            gst: doc['gst'],
+            serviceCharges: doc['servicecharges'],
+            totalPrice: doc['totalPrice']
           ));
         }
       });
@@ -439,6 +460,12 @@ class Item {
   final String title;
   final String description;
   final String fileUrl;
+  final double price;
+  final double gst;
+  final double serviceCharges;
+  final double totalPrice;
 
-  Item({required this.title, required this.description, required this.fileUrl});
+  Item({required this.title, required this.description, required this.fileUrl, required this.price, required this.gst,
+    required this.serviceCharges,
+    required this.totalPrice,});
 }
