@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
 
+import 'cart_details.dart';
 import 'cook_home_page.dart';
 import 'item_details_page.dart';
 
@@ -22,6 +23,22 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   final List<Item> _allItems = [];
   List<Item> _filteredItems = [];
   final TextEditingController _searchController = TextEditingController();
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    if (index == 0) {
+      //on home page only
+    } else if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => CartDetailsPage(cartItems: _filteredItems)),
+      );
+    }
+
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   Future<void> _signOut(BuildContext context) async {
     try {
@@ -286,21 +303,36 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ItemDetailsPage(
-                      title: item.title,
-                      description: item.description,
-                      fileUrl: item.fileUrl,
-                      price: item.price,
-                      gst: item.gst,
-                      serviceCharges: item.serviceCharges,
-                      totalPrice: item.totalPrice,
-                    ),
+                    builder: (context) =>
+                        ItemDetailsPage(
+                          title: item.title,
+                          description: item.description,
+                          fileUrl: item.fileUrl,
+                          price: item.price,
+                          gst: item.gst,
+                          serviceCharges: item.serviceCharges,
+                          totalPrice: item.totalPrice,
+                        ),
                   ),
                 );
               },
             ),
           );
         },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
       ),
       drawer: Drawer(
         backgroundColor: HexColor("#283B71"),
