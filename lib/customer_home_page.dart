@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
-
 import 'cart_details.dart';
+import 'cart_manager.dart';
 import 'cook_home_page.dart';
 import 'item_details_page.dart';
 
@@ -31,7 +31,11 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => CartDetailsPage(cartItems: _filteredItems)),
+        MaterialPageRoute(
+          builder: (context) {
+            return CartDetailsPage(cartItems: CartManager.cartItems);
+          },
+        ),
       );
     }
 
@@ -308,10 +312,10 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           title: item.title,
                           description: item.description,
                           fileUrl: item.fileUrl,
-                          price: item.price,
-                          gst: item.gst,
-                          serviceCharges: item.serviceCharges,
-                          totalPrice: item.totalPrice,
+                          price: item.price.toString(),
+                          gst: item.gst.toString(),
+                          serviceCharges: item.serviceCharges.toString(),
+                          totalPrice: item.totalPrice.toString(),
                         ),
                   ),
                 );

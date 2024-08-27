@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-
-import 'cook_home_page.dart';
+import 'cart_item.dart';
+import 'cart_manager.dart';
 import 'customer_home_page.dart';
 
 class CartDetailsPage extends StatefulWidget {
-  final List<Item> cartItems;
+  final List<CartItem> cartItems;
 
   const CartDetailsPage({Key? key, required this.cartItems}) : super(key: key);
   @override
@@ -35,13 +35,18 @@ int _selectedIndex = 1;
       appBar: AppBar(
         title: const Text('Cart Details'),
       ),
-      body: ListView.builder(
-        itemCount: widget.cartItems.length,
+      body: CartManager.cartItems.isEmpty
+          ? Center(child: Text('No items in cart'))
+          : ListView.builder(
+        itemCount: CartManager.cartItems.length,
         itemBuilder: (context, index) {
-          final item = widget.cartItems[index];
+          final item = CartManager.cartItems[index];
           return ListTile(
             title: Text(item.title),
-            subtitle: Text('Price: ₹${item.price}, GST: ₹${item.gst}, Service Charges: ₹${item.serviceCharges}, Total: ₹${item.totalPrice}'),
+            subtitle: Text('Price: \$${item.price.toStringAsFixed(2)}\n'
+                'GST: \$${item.gst.toStringAsFixed(2)}\n'
+                'Service Charges: \$${item.serviceCharges.toStringAsFixed(2)}\n'
+                'Total: \$${item.totalPrice.toStringAsFixed(2)}'),
           );
         },
       ),

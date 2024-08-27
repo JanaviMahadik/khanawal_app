@@ -8,12 +8,15 @@ import 'package:cooking_app/register_page.dart';
 import 'package:cooking_app/customer_home_page.dart';
 import 'package:cooking_app/cook_home_page.dart';
 
+import 'cart_manager.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform
   );
+  await CartManager.loadCartItems();
   runApp(const MyApp());
 }
 

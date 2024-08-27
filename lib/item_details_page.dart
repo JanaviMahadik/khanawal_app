@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
+import 'cart_manager.dart';
+import 'cart_item.dart';
 
 class ItemDetailsPage extends StatelessWidget {
   final String title;
   final String description;
   final String fileUrl;
-  final double price;
-  final double gst;
-  final double serviceCharges;
-  final double totalPrice;
+  final String price;
+  final String gst;
+  final String serviceCharges;
+  final String totalPrice;
 
   const ItemDetailsPage({
     Key? key,
@@ -116,6 +118,14 @@ class ItemDetailsPage extends StatelessWidget {
               alignment: Alignment.bottomCenter,
               child: ElevatedButton(
                 onPressed: () {
+                  final cartItem = CartItem(
+                    title: title,
+                    price: double.parse(price),
+                    gst: double.parse(gst),
+                    serviceCharges: double.parse(serviceCharges),
+                    totalPrice: double.parse(totalPrice),
+                  );
+                  CartManager.addItem(cartItem);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('$title added to cart!')),
                   );
