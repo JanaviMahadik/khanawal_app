@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:snippet_coder_utils/hex_color.dart';
-import 'customer_home_page.dart'; // Import the home page
+import 'customer_home_page.dart';
 
 class PaymentDoneSplash extends StatefulWidget {
   const PaymentDoneSplash({Key? key}) : super(key: key);
