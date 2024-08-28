@@ -31,4 +31,9 @@ class CartManager {
     cartItems.remove(item);
     await saveCartItems();
   }
+
+  static void clearCart() {
+    cartItems.clear();
+  }
+
 }

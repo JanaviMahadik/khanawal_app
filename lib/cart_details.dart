@@ -39,7 +39,7 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
       ),
     );
 
-    //CartManager.clearCart();
+    CartManager.clearCart();
   }
 
   @override

@@ -72,7 +72,7 @@ class _RegisterPageState extends State<RegisterPage> {
     required String password,
     required String role,
   }) async {
-    final url = 'http://192.168.31.174:3000/register';  // Replace with your backend API endpoint
+    final url = 'http://192.168.31.174:3000/register';  //my wifi ip address
 
     final response = await http.post(
       Uri.parse(url),
