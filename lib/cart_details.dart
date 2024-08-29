@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'cart_item.dart';
 import 'cart_manager.dart';
@@ -31,8 +33,25 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
     });
   }
 
-  void _handleCheckout() {
-    Navigator.push(
+  Future<void> _handleCheckout() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final userId = user.uid;
+
+        for (var item in CartManager.cartItems) {
+          await FirebaseFirestore.instance.collection('orders').add({
+            'userId': userId,
+            'title': item.title,
+            'price': item.price,
+            'gst': item.gst,
+            'serviceCharges': item.serviceCharges,
+            'totalPrice': item.totalPrice,
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+        }
+
+        Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const PaymentDoneSplash(),
@@ -40,6 +59,12 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
     );
 
     CartManager.clearCart();
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error processing order: $e')),
+      );
+    }
   }
 
   @override

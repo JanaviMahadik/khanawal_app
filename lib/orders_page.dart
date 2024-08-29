@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
 
@@ -29,11 +30,39 @@ class _OrdersPageState extends State<OrdersPage> {
         title: const Text('Orders'),
         backgroundColor: HexColor("#283B71"),
       ),
-      body: Center(
-        child: Text(
-          'This is the Orders Page',
-          style: TextStyle(fontSize: 24, color: HexColor("#283B71")),
-        ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('orders').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final orders = snapshot.data?.docs ?? [];
+
+          return ListView.builder(
+            itemCount: orders.length,
+            itemBuilder: (context, index) {
+              final order = orders[index].data() as Map<String, dynamic>;
+              return ListTile(
+                title: Text(order['title']),
+                subtitle: Text(
+                  'Price: ₹${order['price']}\n'
+                      'GST: ₹${order['gst']}\n'
+                      'Service Charges: ₹${order['serviceCharges']}\n'
+                      'Total: ₹${order['totalPrice']}',
+                ),
+                trailing: Text(
+                  'Order Date: ${order['timestamp']?.toDate().toString()}',
+                  style: const TextStyle(color: Colors.grey),
+                ),
+              );
+            },
+          );
+        },
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
