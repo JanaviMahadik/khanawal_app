@@ -20,6 +20,7 @@ class _CookHomePageState extends State<CookHomePage> {
   bool _isAccountsExpanded = false;
   String? _profilePhotoUrl;
   String? _displayName;
+  int _currentIndex = 0;
 
   Future<void> _signOut(BuildContext context) async {
     try {
@@ -276,6 +277,17 @@ class _CookHomePageState extends State<CookHomePage> {
     }
   }
 
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    if (index == 0) {
+      // on home page only
+    } else if (index == 1) {
+      Navigator.pushNamed(context, '/orders');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -358,7 +370,22 @@ class _CookHomePageState extends State<CookHomePage> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      drawer: Drawer(
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home Page',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: 'Orders',
+          ),
+        ],
+      ),
+
+drawer: Drawer(
         backgroundColor: HexColor("#283B71"),
         child: Column(
           children: <Widget>[

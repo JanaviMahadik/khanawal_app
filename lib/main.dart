@@ -9,6 +9,7 @@ import 'package:cooking_app/customer_home_page.dart';
 import 'package:cooking_app/cook_home_page.dart';
 
 import 'cart_manager.dart';
+import 'orders_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
         "/register": (context) => const RegisterPage(),
         "/customer_home": (context) => const CustomerHomePage(),
         "/cook_home": (context) => const CookHomePage(),
+        '/orders': (context) => const OrdersPage(),
       },
     );
   }
