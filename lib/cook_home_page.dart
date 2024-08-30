@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:cooking_app/profile_setting_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,7 +7,7 @@ import 'package:snippet_coder_utils/hex_color.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
-
+import 'package:http/http.dart' as http;
 
 class CookHomePage extends StatefulWidget {
   const CookHomePage({Key? key}) : super(key: key);
@@ -134,22 +135,72 @@ class _CookHomePageState extends State<CookHomePage> {
   void _addItem(String title, String description, String fileUrl, double price, double gst, double serviceCharges, double totalPrice) {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      final userId = user.uid;
+
       FirebaseFirestore.instance.collection('cooking_items').add({
         'title': title,
         'description': description,
         'fileUrl': fileUrl,
         'price': price,
-        'userId': user.uid,
+        'userId': userId,
         'gst': gst,
         'serviceCharges': serviceCharges,
         'totalPrice': totalPrice,
       });
 
+      _saveItemToMongoDB(title, description, fileUrl, price, gst, serviceCharges, totalPrice);
+
       setState(() {
-        _items.add(Item(title: title, description: description, fileUrl: fileUrl, price: price, gst: gst,
+        _items.add(Item(
+          title: title,
+          description: description,
+          fileUrl: fileUrl,
+          price: price,
+          gst: gst,
           serviceCharges: serviceCharges,
-          totalPrice: totalPrice,));
+          totalPrice: totalPrice,
+        ));
       });
+    }
+  }
+
+  Future<void> _saveItemToMongoDB(
+      String title,
+      String description,
+      String fileUrl,
+      double price,
+      double gst,
+      double serviceCharges,
+      double totalPrice,
+      //String userId,
+      ) async {
+    final url = 'http://192.168.31.174:3000/addItem';
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          'title': title,
+          'description': description,
+          'fileUrl': fileUrl,
+          'price': price,
+          'gst': gst,
+          'serviceCharges': serviceCharges,
+          'totalPrice': totalPrice,
+          //'userId': userId,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        print('Item saved to MongoDB');
+      } else {
+        print('Failed to save item to MongoDB: ${response.body}');
+      }
+    } catch (e) {
+      print('Error saving item to MongoDB: $e');
     }
   }
 
