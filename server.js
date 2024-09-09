@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
   email: String,
   password: String,
   role: String,
-}, { collection: 'app' });
+}, { collection: 'users' });
 
 const itemSchema = new mongoose.Schema({
     title: String,

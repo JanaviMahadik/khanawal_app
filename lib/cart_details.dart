@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'cart_item.dart';
 import 'cart_manager.dart';
@@ -17,6 +16,20 @@ class CartDetailsPage extends StatefulWidget {
 
 class _CartDetailsPageState extends State<CartDetailsPage> {
   int _selectedIndex = 1;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCart();
+  }
+
+  Future<void> _loadCart() async {
+    await CartManager.loadCartItems();
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   void _onItemTapped(int index) {
     if (index == 0) {
@@ -35,9 +48,8 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
 
   Future<void> _handleCheckout() async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final userId = user.uid;
+      final userId = await CartManager.getUserId();
+      if (userId != null) {
 
         for (var item in CartManager.cartItems) {
           await FirebaseFirestore.instance.collection('orders').add({
@@ -59,6 +71,7 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
     );
 
     CartManager.clearCart();
+        setState(() {});
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
