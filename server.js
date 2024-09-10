@@ -28,7 +28,7 @@ const itemSchema = new mongoose.Schema({
     gst: Number,
     serviceCharges: Number,
     totalPrice: Number,
-    //userId: mongoose.Schema.Types.ObjectId,
+    userId: mongoose.Schema.Types.ObjectId,
 });
 
 const User = mongoose.model('User', userSchema);
@@ -55,7 +55,7 @@ app.post('/addItem', async (req, res) => {
     gst,
     serviceCharges,
     totalPrice,
-    //userId,
+    userId,
   });
 
   try {

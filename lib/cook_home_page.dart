@@ -148,7 +148,7 @@ class _CookHomePageState extends State<CookHomePage> {
         'totalPrice': totalPrice,
       });
 
-      _saveItemToMongoDB(title, description, fileUrl, price, gst, serviceCharges, totalPrice);
+      _saveItemToMongoDB(title, description, fileUrl, price, gst, serviceCharges, totalPrice, userId);
 
       setState(() {
         _items.add(Item(
@@ -172,7 +172,7 @@ class _CookHomePageState extends State<CookHomePage> {
       double gst,
       double serviceCharges,
       double totalPrice,
-      //String userId,
+      String userId,
       ) async {
     final url = 'http://192.168.31.174:3000/addItem';
 
@@ -190,7 +190,7 @@ class _CookHomePageState extends State<CookHomePage> {
           'gst': gst,
           'serviceCharges': serviceCharges,
           'totalPrice': totalPrice,
-          //'userId': userId,
+          'userId': userId,
         }),
       );
 
