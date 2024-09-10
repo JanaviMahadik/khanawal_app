@@ -66,4 +66,25 @@ app.post('/addItem', async (req, res) => {
   }
 });
 
+app.post('/addToCart', async (req, res) => {
+  const { userId, title, price, gst, serviceCharges, totalPrice } = req.body;
+
+  try {
+    const cartItem = {
+      userId,
+      title,
+      price,
+      gst,
+      serviceCharges,
+      totalPrice,
+      timestamp: new Date(),
+    };
+
+    await mongoose.connection.collection('carts').insertOne(cartItem);
+    res.status(201).send('Item added to cart');
+  } catch (error) {
+    res.status(500).send('Failed to add item to cart');
+  }
+});
+
 app.listen(3000, () => console.log('Server started on port 3000'));
