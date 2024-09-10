@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'cart_item.dart';
 import 'cart_manager.dart';
 import 'customer_home_page.dart';
-import 'payment_done.dart';
+import 'order_placed.dart';
 
 class CartDetailsPage extends StatefulWidget {
   final List<CartItem> cartItems;
@@ -63,14 +63,15 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
           });
         }
 
+        CartManager.clearCart();
+        await CartManager.saveCartItems();
+
         Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const PaymentDoneSplash(),
+        builder: (context) => const OrderPlacedSplash(),
       ),
     );
-
-    CartManager.clearCart();
         setState(() {});
       }
     } catch (e) {

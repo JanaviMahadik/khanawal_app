@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:snippet_coder_utils/hex_color.dart';
 import 'customer_home_page.dart';
 
-class PaymentDoneSplash extends StatefulWidget {
-  const PaymentDoneSplash({Key? key}) : super(key: key);
+class OrderPlacedSplash extends StatefulWidget {
+  const OrderPlacedSplash({Key? key}) : super(key: key);
 
   @override
-  _PaymentDoneSplashState createState() => _PaymentDoneSplashState();
+  _OrderPlacedSplashState createState() => _OrderPlacedSplashState();
 }
 
-class _PaymentDoneSplashState extends State<PaymentDoneSplash> {
+class _OrderPlacedSplashState extends State<OrderPlacedSplash> {
   @override
   void initState() {
     super.initState();
@@ -37,7 +37,7 @@ class _PaymentDoneSplashState extends State<PaymentDoneSplash> {
             ),
             const SizedBox(height: 20.0),
             Text(
-              'Payment Done',
+              'Order Placed',
               style: TextStyle(
                 color: HexColor("#283B71"),
                 fontSize: 24.0,
