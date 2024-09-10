@@ -31,8 +31,19 @@ const itemSchema = new mongoose.Schema({
     userId: mongoose.Schema.Types.ObjectId,
 });
 
+const orderSchema = new mongoose.Schema({
+  userId: String,
+  title: String,
+  price: Number,
+  gst: Number,
+  serviceCharges: Number,
+  totalPrice: Number,
+  timestamp: { type: Date, default: Date.now }
+});
+
 const User = mongoose.model('User', userSchema);
 const Item = mongoose.model('Item', itemSchema);
+const Order = mongoose.model('Order', orderSchema);
 
 app.post('/register', async (req, res) => {
   try {
@@ -84,6 +95,27 @@ app.post('/addToCart', async (req, res) => {
     res.status(201).send('Item added to cart');
   } catch (error) {
     res.status(500).send('Failed to add item to cart');
+  }
+});
+
+app.post('/placeOrder', async (req, res) => {
+  try {
+    const { userId, title, price, gst, serviceCharges, totalPrice } = req.body;
+
+    const newOrder = new Order({
+      userId,
+      title,
+      price,
+      gst,
+      serviceCharges,
+      totalPrice
+    });
+
+    await newOrder.save();
+    res.status(200).json({ message: 'Order placed successfully!' });
+  } catch (error) {
+    console.error('Error saving order:', error);
+    res.status(500).json({ message: 'Failed to place order' });
   }
 });
 

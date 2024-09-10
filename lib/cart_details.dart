@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'cart_item.dart';
 import 'cart_manager.dart';
 import 'customer_home_page.dart';
 import 'order_placed.dart';
+import 'package:http/http.dart' as http;
 
 class CartDetailsPage extends StatefulWidget {
   final List<CartItem> cartItems;
@@ -61,7 +64,27 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
             'totalPrice': item.totalPrice,
             'timestamp': FieldValue.serverTimestamp(),
           });
+
+        final response = await http.post(
+          Uri.parse('http://192.168.31.174:3000/placeOrder'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'userId': userId,
+            'title': item.title,
+            'price': item.price,
+            'gst': item.gst,
+            'serviceCharges': item.serviceCharges,
+            'totalPrice': item.totalPrice,
+          }),
+        );
+
+        if (response.statusCode != 200) {
+          throw Exception('Failed to place order in MongoDB');
         }
+        else {
+          print("order placed");
+        }
+      }
 
         CartManager.clearCart();
         await CartManager.saveCartItems();
