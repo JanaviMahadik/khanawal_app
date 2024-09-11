@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CookHomePage extends StatefulWidget {
   const CookHomePage({Key? key}) : super(key: key);
@@ -23,6 +23,7 @@ class _CookHomePageState extends State<CookHomePage> {
   String? _profilePhotoUrl;
   String? _displayName;
   int _currentIndex = 0;
+  final ImagePicker _picker = ImagePicker();
 
   Future<void> _signOut(BuildContext context) async {
     try {
@@ -211,7 +212,7 @@ class _CookHomePageState extends State<CookHomePage> {
     final TextEditingController titleController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
     final TextEditingController priceController = TextEditingController();
-    PlatformFile? pickedFile;
+    XFile? pickedFile;
 
     showDialog(
       context: context,
@@ -237,16 +238,15 @@ class _CookHomePageState extends State<CookHomePage> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    // File Picker
-                    FilePickerResult? result = await FilePicker.platform.pickFiles();
-                    if (result != null && result.files.isNotEmpty) {
-                      pickedFile = result.files.first;
+                    XFile? file = await _picker.pickImage(source: ImageSource.camera);
+                    if (file != null) {
+                      pickedFile = file;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('File selected: ${pickedFile?.name}')),
+                        SnackBar(content: Text('Photo taken: ${pickedFile?.name}')),
                       );
                     }
                   },
-                  child: const Text('Select File'),
+                  child: const Text('Capture Photo'),
                 ),
               ],
             ),
@@ -290,19 +290,19 @@ class _CookHomePageState extends State<CookHomePage> {
   }
 
 
-  Future<String> _uploadFile(PlatformFile pickedFile) async {
-    File file = File(pickedFile.path!);
+  Future<String> _uploadFile(XFile pickedFile) async {
+    File file = File(pickedFile.path);
     try {
+      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      final storageRef = FirebaseStorage.instance.ref().child('cooking_items').child(fileName);
 
-      Reference ref = FirebaseStorage.instance.ref().child('uploads/${pickedFile.name}');
+      final uploadTask = storageRef.putFile(file);
+      final snapshot = await uploadTask.whenComplete(() => {});
+      final fileUrl = await snapshot.ref.getDownloadURL();
 
-      await ref.putFile(file);
-
-      String downloadUrl = await ref.getDownloadURL();
-      return downloadUrl;
+      return fileUrl;
     } catch (e) {
-      print('Error uploading file: $e');
-      throw e;
+      throw Exception('Error uploading file: $e');
     }
   }
 
