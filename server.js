@@ -28,7 +28,7 @@ const itemSchema = new mongoose.Schema({
     gst: Number,
     serviceCharges: Number,
     totalPrice: Number,
-    userId: mongoose.Schema.Types.ObjectId,
+    //userId: mongoose.Schema.Types.ObjectId,
 });
 
 const orderSchema = new mongoose.Schema({
@@ -56,7 +56,7 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/addItem', async (req, res) => {
-  const { title, description, fileUrl, price, gst, serviceCharges, totalPrice } = req.body;
+  const { title, description, fileUrl, price, gst, serviceCharges, totalPrice} = req.body;
 
   const newItem = new Item({
     title,
@@ -66,7 +66,7 @@ app.post('/addItem', async (req, res) => {
     gst,
     serviceCharges,
     totalPrice,
-    userId,
+    //userId,
   });
 
   try {
