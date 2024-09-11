@@ -7,7 +7,6 @@ import 'package:snippet_coder_utils/hex_color.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
 
 class CookHomePage extends StatefulWidget {
@@ -132,7 +131,6 @@ class _CookHomePageState extends State<CookHomePage> {
     _getUserProfilePhoto();
     _getDisplayName();
     _fetchUserItems();
-    _loadItemsFromLocalStorage();
   }
 
   void _addItem(String title, String description, String fileUrl, double price, double gst, double serviceCharges, double totalPrice) {
@@ -164,7 +162,6 @@ class _CookHomePageState extends State<CookHomePage> {
           totalPrice: totalPrice,
         ));
       });
-      _saveItemsToLocalStorage();
     }
   }
 
@@ -317,20 +314,21 @@ class _CookHomePageState extends State<CookHomePage> {
       setState(() {
         _items.clear();
         for (var doc in querySnapshot.docs) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
           _items.add(Item(
-            title: doc['title'],
-            description: doc['description'],
-            fileUrl: doc['fileUrl'],
-            price: doc['price'],
-            gst: doc['gst'],
-            serviceCharges: doc['servicecharges'],
-            totalPrice: doc['totalPrice']
+            title: data['title'] ?? '',
+            description: data['description'] ?? '',
+            fileUrl: data['fileUrl'] ?? '',
+            price: (data['price'] as num).toDouble(),
+            gst: (data['gst'] as num).toDouble(),
+            serviceCharges: (data['serviceCharges'] as num).toDouble(),
+            totalPrice: (data['totalPrice'] as num).toDouble(),
           ));
         }
       });
     }
-    _saveItemsToLocalStorage();
   }
+
 
   void _onTabTapped(int index) {
     setState(() {
@@ -340,24 +338,6 @@ class _CookHomePageState extends State<CookHomePage> {
       // on home page only
     } else if (index == 1) {
       Navigator.pushNamed(context, '/orders');
-    }
-  }
-
-  Future<void> _saveItemsToLocalStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final List<Map<String, dynamic>> itemsMap = _items.map((item) => item.toMap()).toList();
-    await prefs.setString('cooking_items', jsonEncode(itemsMap));
-  }
-
-  Future<void> _loadItemsFromLocalStorage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final itemsString = prefs.getString('cooking_items');
-    if (itemsString != null) {
-      final List<dynamic> itemsJson = jsonDecode(itemsString);
-      setState(() {
-        _items.clear();
-        _items.addAll(itemsJson.map((json) => Item.fromMap(json)).toList());
-      });
     }
   }
 
@@ -565,9 +545,11 @@ class Item {
   final double serviceCharges;
   final double totalPrice;
 
-  Item({required this.title, required this.description, required this.fileUrl, required this.price, required this.gst,
-    required this.serviceCharges,
-    required this.totalPrice,});
+  Item(
+      {required this.title, required this.description, required this.fileUrl, required this.price, required this.gst,
+        required this.serviceCharges,
+        required this.totalPrice,});
+
   Map<String, dynamic> toMap() {
     return {
       'title': title,
@@ -579,17 +561,4 @@ class Item {
       'totalPrice': totalPrice,
     };
   }
-
-  factory Item.fromMap(Map<String, dynamic> map) {
-    return Item(
-      title: map['title'],
-      description: map['description'],
-      fileUrl: map['fileUrl'],
-      price: map['price'].toDouble(),
-      gst: map['gst'].toDouble(),
-      serviceCharges: map['serviceCharges'].toDouble(),
-      totalPrice: map['totalPrice'].toDouble(),
-    );
-  }
 }
-
