@@ -119,4 +119,25 @@ app.post('/placeOrder', async (req, res) => {
   }
 });
 
+app.put('/updateUsername', async (req, res) => {
+  const { email, newUsername } = req.body;
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { email: email },
+      { $set: { username: newUsername } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Username updated successfully', user });
+  } catch (error) {
+    console.error('Error updating username:', error);
+    res.status(500).json({ message: 'Failed to update username' });
+  }
+});
+
 app.listen(3000, () => console.log('Server started on port 3000'));

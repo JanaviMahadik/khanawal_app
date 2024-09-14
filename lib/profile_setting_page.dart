@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:snippet_coder_utils/hex_color.dart';
 import 'profile_photo_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ProfileSettingsPage extends StatefulWidget {
   final Function(String) onUpdateDisplayName;
@@ -17,6 +19,7 @@ class ProfileSettingsPage extends StatefulWidget {
 class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   File? _selectedProfilePhoto;
   String? _username;
+  String? _email;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -30,6 +33,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     if (user != null) {
       setState(() {
         _username = user.displayName ?? '';
+        _email = user.email;
       });
     }
   }
@@ -60,6 +64,8 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
           await user.updateDisplayName(_username);
           widget.onUpdateDisplayName(_username!);
 
+          await _updateUsernameInMongoDB(_email!, _username!);
+
           if (_selectedProfilePhoto != null) {
             ProfilePhotoService photoService = ProfilePhotoService();
             String? downloadUrl = await photoService.updateProfilePhoto(_selectedProfilePhoto!);
@@ -77,6 +83,27 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
           SnackBar(content: Text('Error updating profile: $e')),
         );
       }
+    }
+  }
+
+  Future<void> _updateUsernameInMongoDB(String email, String newUsername) async {
+    final url = Uri.parse('http://192.168.31.174:3000/updateUsername');
+
+    final body = json.encode({
+      'email': email,
+      'newUsername': newUsername,
+    });
+
+    final response = await http.put(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: body,
+    );
+
+    if (response.statusCode == 200) {
+      print('Username updated successfully');
+    } else {
+      print('Failed to update username in MongoDB: ${response.body}');
     }
   }
 
