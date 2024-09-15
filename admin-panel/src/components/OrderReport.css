@@ -1,0 +1,22 @@
+.order-report {
+    background-color: #f4f4f4;
+    padding: 20px;
+  }
+  
+  .order-report-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .order-report-table th,
+  .order-report-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .order-report-table th {
+    background-color: #283B71;
+    color: white;
+  }
+  

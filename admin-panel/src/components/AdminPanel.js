@@ -1,9 +1,9 @@
-// src/components/AdminPanel.js
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import UserReport from './UserReport';
 import ItemReport from './ItemReport';
-import CartReport from './CartReport'; // Import CartReport component
+import CartReport from './CartReport';
+import OrderReport from './OrderReport'; 
 import './AdminPanel.css';
 
 function AdminPanel() {
@@ -38,7 +38,16 @@ function AdminPanel() {
                 className={active === 'cart-report' ? 'active' : ''}
                 onClick={() => setActive('cart-report')}
               >
-                Carts
+                Cart Report
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/order-report"
+                className={active === 'order-report' ? 'active' : ''}
+                onClick={() => setActive('order-report')}
+              >
+                Order Report
               </Link>
             </li>
           </ul>
@@ -48,6 +57,7 @@ function AdminPanel() {
             <Route path="/user-report" element={<UserReport />} />
             <Route path="/item-report" element={<ItemReport />} />
             <Route path="/cart-report" element={<CartReport />} />
+            <Route path="/order-report" element={<OrderReport />} /> 
           </Routes>
         </main>
       </div>
