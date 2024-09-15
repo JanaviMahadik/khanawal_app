@@ -1,0 +1,19 @@
+.cart-report {
+    padding: 20px;
+  }
+  
+  .cart-report-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .cart-report-table th, .cart-report-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  
+  .cart-report-table th {
+    background-color: #283B71;
+    color: white;
+  }
+  

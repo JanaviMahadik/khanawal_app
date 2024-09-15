@@ -160,4 +160,15 @@ app.get('/items', async (req, res) => {
   }
 });
 
+app.get('/carts', async (req, res) => {
+  try {
+    const carts = await mongoose.connection.collection('carts').find().toArray();
+    res.status(200).json(carts);
+  } catch (error) {
+    console.error('Error fetching carts:', error);
+    res.status(500).json({ message: 'Failed to fetch carts' });
+  }
+});
+
+
 app.listen(3000, () => console.log('Server started on port 3000'));
