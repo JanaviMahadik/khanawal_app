@@ -1,10 +1,11 @@
+// src/App.js
 import React from 'react';
-import UserReport from './components/UserReport';
+import AdminPanel from './components/AdminPanel';
 
 function App() {
   return (
     <div className="App">
-      <UserReport />
+      <AdminPanel />
     </div>
   );
 }
