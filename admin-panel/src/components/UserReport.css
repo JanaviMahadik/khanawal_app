@@ -1,0 +1,61 @@
+.user-report {
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+  }
+  
+  .user-report h1 {
+    color: #283B71;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .user-report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 auto;
+    background-color: #fff;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .user-report-table th, .user-report-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .user-report-table th {
+    background-color: #283B71;
+    color: #fff;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #fff;
+  }
+  
+  .user-report-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .user-report-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .user-report-table td {
+    border-right: 1px solid #ddd;
+  }
+  
+  .user-report-table td:last-child {
+    border-right: none;
+  }
+  
+  .user-report-table caption {
+    caption-side: top;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #283B71;
+  }
+  

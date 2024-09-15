@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
 app.use(express.json());
+const cors = require('cors');
+app.use(cors());
 
 mongoose.connect('mongodb+srv://janavi:passwords@cluster0.k2q6j.mongodb.net/khanawal?retryWrites=true&w=majority&appName=Cluster0', { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -137,6 +139,15 @@ app.put('/updateUsername', async (req, res) => {
   } catch (error) {
     console.error('Error updating username:', error);
     res.status(500).json({ message: 'Failed to update username' });
+  }
+});
+
+app.get('/users', async (req, res) => {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch users' });
   }
 });
 
