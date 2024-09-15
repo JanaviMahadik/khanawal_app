@@ -24,6 +24,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   List<Item> _filteredItems = [];
   final TextEditingController _searchController = TextEditingController();
   int _selectedIndex = 0;
+  int _cartItemCount = 0;
 
   void _onItemTapped(int index) {
     if (index == 0) {
@@ -197,12 +198,19 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     );
   }
 
+  void _loadCartItemCount() {
+    setState(() {
+      _cartItemCount = CartManager.cartItems.length;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     _getUserProfilePhoto();
     _getDisplayName();
     _fetchAllItems();
+    _loadCartItemCount();
     _searchController.addListener(() {
       _filterItems(_searchController.text);
     });
@@ -325,13 +333,42 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         },
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const [
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
+            icon: Stack(
+              children: [
+                Icon(Icons.shopping_cart),
+                if (_cartItemCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(1.0),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12.0,
+                        minHeight: 12.0,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$_cartItemCount',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 8.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             label: 'Cart',
           ),
         ],
