@@ -5,6 +5,7 @@ import './UserReport.css';
 function UserReport() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -13,6 +14,8 @@ function UserReport() {
         setUsers(response.data);
       } catch (error) {
         setError('Error fetching users');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -28,9 +31,19 @@ function UserReport() {
     }
   };
 
+  const updateUserRole = async (userId, role) => {
+    try {
+      await axios.put(`http://localhost:3000/updateUserRole/${userId}`, { newRole: role });
+      setUsers(users.map(user => user._id === userId ? { ...user, role } : user));
+    } catch (error) {
+      setError('Failed to update user role');
+    }
+  };
+
   return (
     <div className="user-report">
       <h1>User Report</h1>
+      {loading && <p className="loading">Loading...</p>}
       {error && <p className="error">{error}</p>}
       <table className="user-report-table">
         <thead>
@@ -46,7 +59,15 @@ function UserReport() {
             <tr key={user._id}>
               <td>{user.username}</td>
               <td>{user.email}</td>
-              <td>{user.role}</td>
+              <td>
+                <select
+                  value={user.role}
+                  onChange={(e) => updateUserRole(user._id, e.target.value)}
+                >
+                  <option value="customer">Customer</option>
+                  <option value="cook">Cook</option>
+                </select>
+              </td>
               <td>
                 <button onClick={() => deleteUser(user._id)} className="delete-button">
                   Delete

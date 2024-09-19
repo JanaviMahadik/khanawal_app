@@ -142,6 +142,24 @@ app.put('/updateUsername', async (req, res) => {
   }
 });
 
+app.put('/updateUserRole/:id', async (req, res) => {
+  const { id } = req.params;
+  const { newRole } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(id, { role: newRole }, { new: true });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'User role updated successfully', user });
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    res.status(500).json({ message: 'Failed to update user role' });
+  }
+});
+
 app.get('/users', async (req, res) => {
   try {
     const users = await User.find();

@@ -51,6 +51,13 @@
   border-right: none;
 }
 
+.user-report-table select {
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
 .delete-button {
   background-color: #f44336; /* Red color for delete button */
   color: white;
@@ -64,6 +71,18 @@
   background-color: #d32f2f; /* Darker red when hovering */
 }
 
+.loading {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #283B71; /* Match your theme */
+  text-align: center;
+  padding: 20px;
+}
+
 .error {
   color: red;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 10px;
 }
