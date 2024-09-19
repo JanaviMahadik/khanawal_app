@@ -50,3 +50,20 @@
 .user-report-table td:last-child {
   border-right: none;
 }
+
+.delete-button {
+  background-color: #f44336; /* Red color for delete button */
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-button:hover {
+  background-color: #d32f2f; /* Darker red when hovering */
+}
+
+.error {
+  color: red;
+}
