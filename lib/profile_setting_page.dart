@@ -111,7 +111,12 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Profile Settings"),
+        title: const Text(
+        "Profile Settings",
+        style: TextStyle(
+        color: Colors.white,
+    ),
+        ),
         backgroundColor: HexColor("#283B71"),
       ),
       body: Padding(
