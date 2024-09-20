@@ -133,7 +133,7 @@ class _CookHomePageState extends State<CookHomePage> {
     _fetchUserItems();
   }
 
-  void _addItem(String title, String description, String fileUrl, double price, double gst, double serviceCharges, double totalPrice) {
+  void _addItem(String title, String description, String fileUrl, double price, double gst, double serviceCharges, double totalPrice) async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final userId = user.uid;
@@ -147,25 +147,28 @@ class _CookHomePageState extends State<CookHomePage> {
         'gst': gst,
         'serviceCharges': serviceCharges,
         'totalPrice': totalPrice,
-      });
-
-      _saveItemToMongoDB(title, description, fileUrl, price, gst, serviceCharges, totalPrice);
-
-      setState(() {
-        _items.add(Item(
-          title: title,
-          description: description,
-          fileUrl: fileUrl,
-          price: price,
-          gst: gst,
-          serviceCharges: serviceCharges,
-          totalPrice: totalPrice,
-        ));
+      }).then((docRef) async {
+        String mongoId = await _saveItemToMongoDB(title, description, fileUrl, price, gst, serviceCharges, totalPrice);
+        setState(() {
+          _items.add(Item(
+            id: mongoId,
+            title: title,
+            description: description,
+            fileUrl: fileUrl,
+            price: price,
+            gst: gst,
+            serviceCharges: serviceCharges,
+            totalPrice: totalPrice,
+          ));
+        });
+      }).catchError((error) {
+        print('Error adding item: $error');
       });
     }
   }
 
-  Future<void> _saveItemToMongoDB(
+
+  Future<String> _saveItemToMongoDB(
       String title,
       String description,
       String fileUrl,
@@ -175,7 +178,7 @@ class _CookHomePageState extends State<CookHomePage> {
       double totalPrice,
       //String userId,
       ) async {
-    final url = 'http://192.168.31.174:3000/addItem';
+    final url = 'http://192.168.108.231:3000/addItem';
 
     try {
       final response = await http.post(
@@ -191,17 +194,19 @@ class _CookHomePageState extends State<CookHomePage> {
           'gst': gst,
           'serviceCharges': serviceCharges,
           'totalPrice': totalPrice,
-          //'userId': userId,
         }),
       );
 
       if (response.statusCode == 201) {
-        print('Item saved to MongoDB');
+        final responseBody = jsonDecode(response.body);
+        return responseBody['mongoId'];
       } else {
         print('Failed to save item to MongoDB: ${response.body}');
+        throw Exception('Failed to save item');
       }
     } catch (e) {
       print('Error saving item to MongoDB: $e');
+      throw Exception('Error saving item');
     }
   }
 
@@ -286,8 +291,56 @@ class _CookHomePageState extends State<CookHomePage> {
     );
   }
 
+  Future<void> _deleteItem(String mongoId, String fileUrl) async {
+    try {
+      final url = 'http://192.168.108.231:3000/deleteItem/$mongoId';
+      final response = await http.delete(Uri.parse(url));
 
-  Future<String> _uploadFile(XFile pickedFile) async {
+      if (response.statusCode == 200) {
+        if (fileUrl.isNotEmpty) {
+          Reference storageRef = FirebaseStorage.instance.refFromURL(fileUrl);
+          await storageRef.delete();
+        }
+
+        setState(() {
+          _items.removeWhere((item) => item.id == mongoId);
+        });
+      } else {
+        throw Exception('Failed to delete item from MongoDB');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting item: $e')),
+      );
+    }
+  }
+
+  void _showDeleteConfirmationDialog(String mongoId, String fileUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            title: Text('Delete Item'),
+            content: Text('Are you sure you want to delete this item?'),
+            actions: [
+            TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+        child: Text('Cancel'),
+        ),
+        TextButton(
+        onPressed: () async {
+        Navigator.of(context).pop();
+        await _deleteItem(mongoId, fileUrl);
+        },
+        child: Text('Delete'),
+        ),
+      ],
+    );
+  },
+  );
+}
+
+Future<String> _uploadFile(XFile pickedFile) async {
     File file = File(pickedFile.path);
     try {
       final fileName = DateTime.now().millisecondsSinceEpoch.toString();
@@ -316,6 +369,7 @@ class _CookHomePageState extends State<CookHomePage> {
         for (var doc in querySnapshot.docs) {
           Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
           _items.add(Item(
+            id: doc.id,
             title: data['title'] ?? '',
             description: data['description'] ?? '',
             fileUrl: data['fileUrl'] ?? '',
@@ -328,6 +382,7 @@ class _CookHomePageState extends State<CookHomePage> {
       });
     }
   }
+
 
 
   void _onTabTapped(int index) {
@@ -402,6 +457,12 @@ class _CookHomePageState extends State<CookHomePage> {
                         Text(item.description, style: TextStyle(color: HexColor("#283B71"))),
                       ],
                     ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      _showDeleteConfirmationDialog(item.id, item.fileUrl);
+                    },
                   ),
                 ],
               ),
@@ -537,6 +598,7 @@ drawer: Drawer(
 }
 
 class Item {
+  final String id;
   final String title;
   final String description;
   final String fileUrl;
@@ -546,12 +608,15 @@ class Item {
   final double totalPrice;
 
   Item(
-      {required this.title, required this.description, required this.fileUrl, required this.price, required this.gst,
+      {
+        required this.id,
+        required this.title, required this.description, required this.fileUrl, required this.price, required this.gst,
         required this.serviceCharges,
         required this.totalPrice,});
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'title': title,
       'description': description,
       'fileUrl': fileUrl,

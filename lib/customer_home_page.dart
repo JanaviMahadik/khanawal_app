@@ -96,6 +96,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
 
           if (data != null) {
             final item = Item(
+              id: data['id'] ?? '',
               title: data['title'] ?? 'No Title',
               description: data['description'] ?? 'No Description',
               fileUrl: data['fileUrl'] ?? '',

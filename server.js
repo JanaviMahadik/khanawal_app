@@ -4,6 +4,7 @@ const app = express();
 app.use(express.json());
 const cors = require('cors');
 app.use(cors());
+const { ObjectId } = mongoose.Types;
 
 mongoose.connect('mongodb+srv://janavi:passwords@cluster0.k2q6j.mongodb.net/khanawal?retryWrites=true&w=majority&appName=Cluster0', { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -30,7 +31,6 @@ const itemSchema = new mongoose.Schema({
     gst: Number,
     serviceCharges: Number,
     totalPrice: Number,
-    //userId: mongoose.Schema.Types.ObjectId,
 });
 
 const orderSchema = new mongoose.Schema({
@@ -68,12 +68,12 @@ app.post('/addItem', async (req, res) => {
     gst,
     serviceCharges,
     totalPrice,
-    //userId,
   });
 
   try {
-    await newItem.save();
-    res.status(201).send('Item saved to MongoDB');
+    const savedItem = await newItem.save();
+    
+    res.status(201).send({ message: 'Item saved to MongoDB', mongoId: savedItem._id });
   } catch (error) {
     res.status(500).send('Failed to save item to MongoDB');
   }
@@ -214,5 +214,28 @@ app.delete('/deleteUser/:id', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+app.delete('/deleteItem/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid ObjectId format' });
+  }
+
+  try {
+    console.log("Attempting to delete item with ID:", id);
+    const deletedItem = await Item.findByIdAndDelete(id);
+
+    if (!deletedItem) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    res.status(200).json({ message: 'Item deleted successfully', deletedItem });
+  } catch (error) {
+    console.error('Error deleting item:', error);
+    res.status(500).json({ message: 'Failed to delete item' });
+  }
+});
+
 
 app.listen(3000, () => console.log('Server started on port 3000'));
