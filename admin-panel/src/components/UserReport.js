@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import './UserReport.css';
 
 function UserReport() {
@@ -67,6 +68,19 @@ function UserReport() {
     }
   };
 
+  const roleData = users.reduce((acc, user) => {
+    const role = user.role;
+    acc[role] = (acc[role] || 0) + 1;
+    return acc;
+  }, {});
+
+  const chartData = Object.entries(roleData).map(([key, value]) => ({
+    name: key,
+    value: value,
+  }));
+
+  const COLORS = ['#0088FE', '#FFBB28', '#FF8042'];
+
   return (
     <div className="user-report">
       <h1>User Report</h1>
@@ -109,6 +123,25 @@ function UserReport() {
         </select>
         <button type="submit">Add User</button>
       </form>
+
+      <PieChart width={400} height={400}>
+        <Pie
+          data={chartData}
+          cx={200}
+          cy={200}
+          labelLine={false}
+          label={entry => entry.name}
+          outerRadius={80}
+          fill="#8884d8"
+          dataKey="value"
+        >
+          {chartData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip />
+        <Legend />
+      </PieChart>
 
       <table className="user-report-table">
         <thead>
