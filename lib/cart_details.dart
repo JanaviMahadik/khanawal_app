@@ -121,10 +121,10 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
                 return ListTile(
                   title: Text(item.title),
                   subtitle: Text(
-                    'Price: \$${item.price.toStringAsFixed(2)}\n'
-                        'GST: \$${item.gst.toStringAsFixed(2)}\n'
-                        'Service Charges: \$${item.serviceCharges.toStringAsFixed(2)}\n'
-                        'Total: \$${item.totalPrice.toStringAsFixed(2)}',
+                    'Price: ₹${item.price.toStringAsFixed(2)}\n'
+                        'GST: ₹${item.gst.toStringAsFixed(2)}\n'
+                        'Service Charges: ₹${item.serviceCharges.toStringAsFixed(2)}\n'
+                        'Total: ₹${item.totalPrice.toStringAsFixed(2)}',
                   ),
                   trailing: IconButton(
                     icon: Icon(Icons.delete),
