@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 class CartManager {
   static const _cartKeyPrefix = 'cart_items_';
   static List<CartItem> cartItems = [];
-  static const String _apiUrl = 'http://192.168.108.231:3000';
+  static const String _apiUrl = 'http://192.168.119.231:3000';
 
   static Future<String?> getUserId() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -63,7 +63,28 @@ class CartManager {
   static Future<void> removeItem(CartItem item) async {
     cartItems.remove(item);
     await saveCartItems();
+
+    final userId = await getUserId();
+    if (userId != null) {
+      try {
+        final response = await http.delete(
+          Uri.parse('$_apiUrl/deleteCartItem'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'userId': userId,
+            'title': item.title,
+          }),
+        );
+
+        if (response.statusCode != 200) {
+          throw Exception('Failed to delete item from MongoDB');
+        }
+      } catch (e) {
+        print('Failed to delete item from cart: $e');
+      }
+    }
   }
+
 
   static void clearCart() {
     cartItems.clear();

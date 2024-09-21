@@ -237,5 +237,21 @@ app.delete('/deleteItem/:id', async (req, res) => {
   }
 });
 
+app.delete('/deleteCartItem', async (req, res) => {
+  const { userId, title } = req.body;
+
+  try {
+    const result = await mongoose.connection.collection('carts').deleteOne({ userId: userId, title: title });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'Cart item not found' });
+    }
+
+    res.status(200).json({ message: 'Cart item deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting cart item:', error);
+    res.status(500).json({ message: 'Failed to delete cart item' });
+  }
+});
 
 app.listen(3000, () => console.log('Server started on port 3000'));

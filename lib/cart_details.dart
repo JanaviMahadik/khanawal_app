@@ -65,7 +65,7 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
           });
 
         final response = await http.post(
-          Uri.parse('http://192.168.108.231:3000/placeOrder'),
+          Uri.parse('http://192.168.119.231:3000/placeOrder'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'userId': userId,
@@ -125,6 +125,13 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
                         'GST: \$${item.gst.toStringAsFixed(2)}\n'
                         'Service Charges: \$${item.serviceCharges.toStringAsFixed(2)}\n'
                         'Total: \$${item.totalPrice.toStringAsFixed(2)}',
+                  ),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () async {
+                      await CartManager.removeItem(item);
+                      setState(() {});
+                    },
                   ),
                 );
               },
