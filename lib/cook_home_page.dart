@@ -167,7 +167,6 @@ class _CookHomePageState extends State<CookHomePage> {
     }
   }
 
-
   Future<String> _saveItemToMongoDB(
       String title,
       String description,
@@ -178,7 +177,7 @@ class _CookHomePageState extends State<CookHomePage> {
       double totalPrice,
       //String userId,
       ) async {
-    final url = 'http://192.168.108.231:3000/addItem';
+    final url = 'http://192.168.31.174:3000/addItem';
 
     try {
       final response = await http.post(
@@ -291,9 +290,136 @@ class _CookHomePageState extends State<CookHomePage> {
     );
   }
 
+  void _showEditItemDialog(Item item) {
+    final TextEditingController titleController = TextEditingController(text: item.title);
+    final TextEditingController descriptionController = TextEditingController(text: item.description);
+    final TextEditingController priceController = TextEditingController(text: item.price.toString());
+    XFile? pickedFile;
+    final String mongoId = item.id;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Item'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: 'Title'),
+                ),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                ),
+                TextField(
+                  controller: priceController,
+                  decoration: const InputDecoration(labelText: 'Price'),
+                  keyboardType: TextInputType.number,
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    XFile? file = await _picker.pickImage(source: ImageSource.camera);
+                    if (file != null) {
+                      pickedFile = file;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Photo taken: ${pickedFile?.name}')),
+                      );
+                    }
+                  },
+                  child: const Text('Capture Photo'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                final title = titleController.text;
+                final description = descriptionController.text;
+                final price = double.tryParse(priceController.text) ?? 0.0;
+
+                if (title.isNotEmpty && description.isNotEmpty) {
+                  try {
+                    double gst = price * 0.12;
+                    double serviceCharges = price * 0.10;
+                    double totalPrice = price + gst + serviceCharges;
+
+                    String fileUrl = pickedFile != null ? await _uploadFile(pickedFile!) : item.fileUrl;
+
+                    await _updateItemInMongoDB(mongoId, title, description, fileUrl, price, gst, serviceCharges, totalPrice);
+
+                    setState(() {
+                      _items[_items.indexWhere((i) => i.id == mongoId)] = Item(
+                        id: mongoId,
+                        title: title,
+                        description: description,
+                        fileUrl: fileUrl,
+                        price: price,
+                        gst: gst,
+                        serviceCharges: serviceCharges,
+                        totalPrice: totalPrice,
+                      );
+                    });
+                    Navigator.of(context).pop();
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error updating item: $e')),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please fill all fields')),
+                  );
+                }
+              },
+              child: const Text('Update'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _updateItemInMongoDB(String mongoId, String title, String description, String fileUrl, double price, double gst, double serviceCharges, double totalPrice) async {
+    final url = 'http://192.168.31.174:3000/updateItem/$mongoId';
+
+    try {
+      final response = await http.put(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          'title': title,
+          'description': description,
+          'fileUrl': fileUrl,
+          'price': price,
+          'gst': gst,
+          'serviceCharges': serviceCharges,
+          'totalPrice': totalPrice,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        print('Failed to update item. Status code: ${response.statusCode}, Response: ${response.body}');
+        throw Exception('Failed to update item in MongoDB');
+      }
+    } catch (e) {
+      print('Error updating item in MongoDB: $e');
+      throw Exception('Error updating item');
+    }
+  }
+
   Future<void> _deleteItem(String mongoId, String fileUrl) async {
     try {
-      final url = 'http://192.168.108.231:3000/deleteItem/$mongoId';
+      final url = 'http://192.168.31.174:3000/deleteItem/$mongoId';
       final response = await http.delete(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -383,8 +509,6 @@ Future<String> _uploadFile(XFile pickedFile) async {
     }
   }
 
-
-
   void _onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
@@ -434,30 +558,32 @@ Future<String> _uploadFile(XFile pickedFile) async {
             color: Colors.white,
             child: ListTile(
               contentPadding: const EdgeInsets.all(10.0),
-              title: Row(
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.0),
-                      image: DecorationImage(
-                        image: NetworkImage(item.fileUrl),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(item.title, style: TextStyle(color: HexColor("#283B71"), fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 5),
-                        Text(item.description, style: TextStyle(color: HexColor("#283B71"))),
-                      ],
-                    ),
-                  ),
+          title: GestureDetector(
+          onTap: () => _showEditItemDialog(item),
+          child: Row(
+          children: [
+          Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          image: DecorationImage(
+          image: NetworkImage(item.fileUrl),
+          fit: BoxFit.cover,
+          ),
+          ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+          child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+          Text(item.title, style: TextStyle(color: HexColor("#283B71"), fontWeight: FontWeight.bold)),
+          const SizedBox(height: 5),
+          Text(item.description, style: TextStyle(color: HexColor("#283B71"))),
+          ],
+          ),
+          ),
                   IconButton(
                     icon: Icon(Icons.delete, color: Colors.red),
                     onPressed: () {
@@ -467,6 +593,7 @@ Future<String> _uploadFile(XFile pickedFile) async {
                 ],
               ),
             ),
+            )
           );
         },
       ),

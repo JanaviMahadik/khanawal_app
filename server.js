@@ -160,6 +160,32 @@ app.put('/updateUserRole/:id', async (req, res) => {
   }
 });
 
+app.put('/updateItem/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, description, fileUrl, price, gst, serviceCharges, totalPrice } = req.body;
+
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid ObjectId format' });
+  }
+
+  try {
+    const updatedItem = await Item.findByIdAndUpdate(
+      id,
+      { title, description, fileUrl, price, gst, serviceCharges, totalPrice },
+      { new: true } 
+    );
+
+    if (!updatedItem) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+
+    res.status(200).json({ message: 'Item updated successfully', updatedItem });
+  } catch (error) {
+    console.error('Error updating item:', error);
+    res.status(500).json({ message: 'Failed to update item' });
+  }
+});
+
 app.get('/users', async (req, res) => {
   try {
     const users = await User.find();

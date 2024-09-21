@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 class CartManager {
   static const _cartKeyPrefix = 'cart_items_';
   static List<CartItem> cartItems = [];
-  static const String _apiUrl = 'http://192.168.119.231:3000';
+  static const String _apiUrl = 'http://192.168.31.174:3000';
 
   static Future<String?> getUserId() async {
     final user = FirebaseAuth.instance.currentUser;

@@ -65,7 +65,7 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
           });
 
         final response = await http.post(
-          Uri.parse('http://192.168.119.231:3000/placeOrder'),
+          Uri.parse('http://192.168.31.174:3000/placeOrder'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'userId': userId,
