@@ -40,7 +40,8 @@ const orderSchema = new mongoose.Schema({
   gst: Number,
   serviceCharges: Number,
   totalPrice: Number,
-  timestamp: { type: Date, default: Date.now }
+  timestamp: { type: Date, default: Date.now },
+  status: { type: String, default: 'pending' }
 });
 
 const User = mongoose.model('User', userSchema);
@@ -183,6 +184,20 @@ app.put('/updateItem/:id', async (req, res) => {
   } catch (error) {
     console.error('Error updating item:', error);
     res.status(500).json({ message: 'Failed to update item' });
+  }
+});
+
+app.put('/updateOrder/:orderId', async (req, res) => {
+  const { orderId } = req.params;
+  const { status } = req.body;
+
+  console.log(`Updating order ${orderId} with status: ${status}`);
+  
+  try {
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, { status: status }, { new: true });
+    res.status(200).json(updatedOrder);
+  } catch (error) {
+    res.status(500).send('Error updating order status');
   }
 });
 
