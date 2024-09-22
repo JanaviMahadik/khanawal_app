@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cooking_app/profile_setting_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -83,35 +85,45 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   }
 
   Future<void> _fetchAllItems() async {
-    try {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('cooking_items')
-          .get();
-
-      setState(() {
-        _allItems.clear();
-        _filteredItems.clear();
-        for (var doc in querySnapshot.docs) {
-          final data = doc.data() as Map<String, dynamic>?;
-
-          if (data != null) {
-            final item = Item(
-              id: data['id'] ?? '',
-              title: data['title'] ?? 'No Title',
-              description: data['description'] ?? 'No Description',
-              fileUrl: data['fileUrl'] ?? '',
-              price: data['price'] ?? '',
-              gst: data['gst'] ?? '',
-              serviceCharges: data['serviceCharges'] ?? '',
-              totalPrice: data['totalPrice'] ?? '',
-            );
-            _allItems.add(item);
-            _filteredItems.add(item);
-          }
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final url = 'http://192.168.31.174:3000/items';
+      try {
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          final List<dynamic> itemsData = jsonDecode(response.body);
+          setState(() {
+            _allItems.clear();
+            _filteredItems.clear();
+            for (var data in itemsData) {
+              _allItems.add(Item(
+                id: data['_id'],
+                title: data['title'] ?? '',
+                description: data['description'] ?? '',
+                fileUrl: data['fileUrl'] ?? '',
+                price: double.tryParse(data['price']) ?? 0.0,
+                gst: double.tryParse(data['gst'].toString()) ?? 0.0,
+                serviceCharges: double.tryParse(data['serviceCharges'].toString()) ?? 0.0,
+                totalPrice: double.tryParse(data['totalPrice'].toString()) ?? 0.0,
+              ));
+              _filteredItems.add(Item(
+                id: data['_id'],
+                title: data['title'] ?? '',
+                description: data['description'] ?? '',
+                fileUrl: data['fileUrl'] ?? '',
+                price: double.tryParse(data['price']) ?? 0.0,
+                gst: double.tryParse(data['gst'].toString()) ?? 0.0,
+                serviceCharges: double.tryParse(data['serviceCharges'].toString()) ?? 0.0,
+                totalPrice: double.tryParse(data['totalPrice'].toString()) ?? 0.0,
+              ));
+            }
+          });
+        } else {
+          print('Error fetching items: ${response.statusCode}');
         }
-      });
-    } catch (e) {
-      print("Error fetching items: $e");
+      } catch (e) {
+        print('Error fetching user items: $e');
+      }
     }
   }
 

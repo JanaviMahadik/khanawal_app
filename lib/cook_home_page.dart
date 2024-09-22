@@ -485,27 +485,32 @@ Future<String> _uploadFile(XFile pickedFile) async {
   Future<void> _fetchUserItems() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('cooking_items')
-          .where('userId', isEqualTo: user.uid)
-          .get();
-
-      setState(() {
-        _items.clear();
-        for (var doc in querySnapshot.docs) {
-          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-          _items.add(Item(
-            id: doc.id,
-            title: data['title'] ?? '',
-            description: data['description'] ?? '',
-            fileUrl: data['fileUrl'] ?? '',
-            price: (data['price'] as num).toDouble(),
-            gst: (data['gst'] as num).toDouble(),
-            serviceCharges: (data['serviceCharges'] as num).toDouble(),
-            totalPrice: (data['totalPrice'] as num).toDouble(),
-          ));
+      final url = 'http://192.168.31.174:3000/items';
+      try {
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200) {
+          final List<dynamic> itemsData = jsonDecode(response.body);
+          setState(() {
+            _items.clear();
+            for (var data in itemsData) {
+              _items.add(Item(
+                id: data['_id'],
+                title: data['title'] ?? '',
+                description: data['description'] ?? '',
+                fileUrl: data['fileUrl'] ?? '',
+                price: double.tryParse(data['price']) ?? 0.0,
+                gst: double.tryParse(data['gst'].toString()) ?? 0.0,
+                serviceCharges: double.tryParse(data['serviceCharges'].toString()) ?? 0.0,
+                totalPrice: double.tryParse(data['totalPrice'].toString()) ?? 0.0,
+              ));
+            }
+          });
+        } else {
+          print('Error fetching items: ${response.statusCode}');
         }
-      });
+      } catch (e) {
+        print('Error fetching user items: $e');
+      }
     }
   }
 
