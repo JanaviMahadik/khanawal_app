@@ -55,7 +55,6 @@ function OrderReport() {
             <th>Price</th>
             <th>Service Charges</th>
             <th>Total Amount</th>
-            <th>Order Date</th>
           </tr>
         </thead>
         <tbody>
@@ -66,7 +65,6 @@ function OrderReport() {
               <td>₹{order.price}</td>
               <td>₹{order.serviceCharges}</td>
               <td>₹{order.totalPrice}</td>
-              <td>{new Date(order.orderDate).toLocaleDateString()}</td>
             </tr>
           ))}
         </tbody>
