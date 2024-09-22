@@ -105,6 +105,7 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    int _cartItemCount = CartManager.cartItems.length;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cart Details'),
@@ -148,13 +149,42 @@ class _CartDetailsPageState extends State<CartDetailsPage> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const [
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
+            icon: Stack(
+              children: [
+                Icon(Icons.shopping_cart),
+                if (_cartItemCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(1.0),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12.0,
+                        minHeight: 12.0,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$_cartItemCount',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 8.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             label: 'Cart',
           ),
         ],
