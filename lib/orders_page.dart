@@ -13,6 +13,7 @@ class OrdersPage extends StatefulWidget {
 class _OrdersPageState extends State<OrdersPage> {
   int _currentIndex = 1;
   List<dynamic> orders = [];
+  int _orderCount = 0;
 
   void _onTabTapped(int index) {
     setState(() {
@@ -40,6 +41,7 @@ class _OrdersPageState extends State<OrdersPage> {
         setState(() {
           orders = allOrders.where((order) =>
           order['status'] != 'accepted' && order['status'] != 'declined').toList();
+          _orderCount = orders.length;
         });
       } else {
         throw Exception('Failed to load orders');
@@ -128,13 +130,42 @@ class _OrdersPageState extends State<OrdersPage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home Page',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
+            icon: Stack(
+              children: [
+                Icon(Icons.receipt_long),
+                if (_orderCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(1.0),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12.0,
+                        minHeight: 12.0,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$_orderCount',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 8.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             label: 'Orders',
           ),
         ],

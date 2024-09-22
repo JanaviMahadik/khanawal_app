@@ -23,6 +23,8 @@ class _CookHomePageState extends State<CookHomePage> {
   String? _displayName;
   int _currentIndex = 0;
   final ImagePicker _picker = ImagePicker();
+  int _orderCount = 0;
+  List<dynamic> orders = [];
 
   Future<void> _signOut(BuildContext context) async {
     try {
@@ -131,6 +133,7 @@ class _CookHomePageState extends State<CookHomePage> {
     _getUserProfilePhoto();
     _getDisplayName();
     _fetchUserItems();
+    _fetchOrders();
   }
 
   void _addItem(String title, String description, String fileUrl, double price, double gst, double serviceCharges, double totalPrice) async {
@@ -482,6 +485,29 @@ Future<String> _uploadFile(XFile pickedFile) async {
     }
   }
 
+  Future<void> _fetchOrders() async {
+    final url = 'http://192.168.31.174:3000/orders';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final allOrders = jsonDecode(response.body);
+        setState(() {
+          orders = allOrders.where((order) =>
+          order['status'] != 'accepted' && order['status'] != 'declined').toList();
+          _orderCount = orders.length;
+        });
+      } else {
+        throw Exception('Failed to load orders');
+      }
+    } catch (e) {
+      print('Error fetching orders: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching orders')),
+      );
+    }
+  }
+
   Future<void> _fetchUserItems() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -619,13 +645,42 @@ Future<String> _uploadFile(XFile pickedFile) async {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home Page',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
+            icon: Stack(
+              children: [
+                Icon(Icons.receipt_long),
+                if (_orderCount > 0)
+                  Positioned(
+                    right: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(1.0),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                      constraints: BoxConstraints(
+                        minWidth: 12.0,
+                        minHeight: 12.0,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$_orderCount',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 8.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             label: 'Orders',
           ),
         ],
