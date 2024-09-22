@@ -91,7 +91,12 @@ class _OrdersPageState extends State<OrdersPage> {
         backgroundColor: HexColor("#283B71"),
       ),
       body: orders.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+        child: Text(
+          'No orders placed yet',
+          style: TextStyle(fontSize: 18),
+        ),
+      )
           : ListView.builder(
         itemCount: orders.length,
         itemBuilder: (context, index) {
