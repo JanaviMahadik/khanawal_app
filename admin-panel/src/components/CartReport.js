@@ -59,10 +59,10 @@ function CartReport() {
           {carts.map((cartItem) => (
             <tr key={cartItem._id}>
               <td>{cartItem.title}</td>
-              <td>${cartItem.price}</td>
-              <td>${cartItem.gst}</td>
-              <td>${cartItem.serviceCharges}</td>
-              <td>${cartItem.totalPrice}</td>
+              <td>₹{cartItem.price}</td>
+              <td>₹{cartItem.gst}</td>
+              <td>₹{cartItem.serviceCharges}</td>
+              <td>₹{cartItem.totalPrice}</td>
             </tr>
           ))}
         </tbody>

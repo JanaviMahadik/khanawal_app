@@ -63,9 +63,9 @@ function OrderReport() {
             <tr key={order._id}>
               <td>{order.userId}</td>
               <td>{order.title}</td>
-              <td>${order.price}</td>
-              <td>${order.serviceCharges}</td>
-              <td>${order.totalPrice}</td>
+              <td>₹{order.price}</td>
+              <td>₹{order.serviceCharges}</td>
+              <td>₹{order.totalPrice}</td>
               <td>{new Date(order.orderDate).toLocaleDateString()}</td>
             </tr>
           ))}

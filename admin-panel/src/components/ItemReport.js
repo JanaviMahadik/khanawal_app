@@ -58,7 +58,7 @@ function ItemReport() {
             <tr key={item._id}>
               <td>{item.title}</td>
               <td>{item.description}</td>
-              <td>${item.price}</td>
+              <td>₹{item.price}</td>
             </tr>
           ))}
         </tbody>
