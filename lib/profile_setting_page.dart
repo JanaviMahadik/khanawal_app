@@ -6,6 +6,7 @@ import 'package:snippet_coder_utils/hex_color.dart';
 import 'profile_photo_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileSettingsPage extends StatefulWidget {
   final Function(String) onUpdateDisplayName;
@@ -21,6 +22,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
   String? _username;
   String? _email;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -38,7 +40,35 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
     }
   }
 
-  Future<void> _selectProfilePhoto() async {
+  Future<void> _selectProfilePhotoOption() async {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera),
+              title: const Text('Take a photo'),
+              onTap: () {
+                Navigator.pop(context);
+                _takePhoto();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickPhotoFromGallery();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _pickPhotoFromGallery() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
     );
@@ -49,7 +79,21 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
       });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No photo selected. Please try again.')),
+        const SnackBar(content: Text('No photo selected. Please try again.')),
+      );
+    }
+  }
+
+  Future<void> _takePhoto() async {
+    final XFile? photo = await _imagePicker.pickImage(source: ImageSource.camera);
+
+    if (photo != null) {
+      setState(() {
+        _selectedProfilePhoto = File(photo.path);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No photo captured. Please try again.')),
       );
     }
   }
@@ -138,7 +182,7 @@ class _ProfileSettingsPageState extends State<ProfileSettingsPage> {
               ),
               const SizedBox(height: 16.0),
               GestureDetector(
-                onTap: _selectProfilePhoto,
+                onTap: _selectProfilePhotoOption,
                 child: _selectedProfilePhoto != null
                     ? CircleAvatar(
                   radius: 80,
