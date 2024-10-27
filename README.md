@@ -1,16 +1,37 @@
-# cooking_app
+# Khanawal
 
-A new Flutter project.
+![khanawal_logo](https://github.com/user-attachments/assets/ba79c6f0-ab32-4817-9f88-2fa8aed9ad64)
 
-## Getting Started
+# Khanawal: E-Commerce Mobile Application
 
-This project is a starting point for a Flutter application.
+Khanawal is a revolutionary e-commerce mobile application designed to connect home cooks and customers seamlessly. With two dedicated interfaces—one for cooks to upload their culinary creations and another for customers to browse and purchase—we aim to address the common challenges faced by both parties.
 
-A few resources to get you started if this is your first Flutter project:
+Home cooks often struggle with a lack of a uniform online platform and limited visibility, while customers face difficulties in finding authentic, healthy homemade food. Khanawal bridges these gaps, enhancing the user experience for both cooks and customers and fostering a vibrant community around home-cooked meals.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Additionally, the app includes an admin interface that allows the owner to view comprehensive statistics, providing insights into app performance and user engagement. Join us in transforming the way home cooks reach their audience and customers discover delightful, homemade options!
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Features
+- Registration and Login (for cook and customer)
+- Profile Photo and Username Upload and Update (for cook and customer)
+- Reset Password Option through Email(Reset Password Link) (for cook and customer)
+- Account Sign Out and Permanent Delete (for cook and customer)
+- Responsive UI
+- User Authentication and Authorization
+- Session Management
+- Upload/Edit/Delete/View items (for cook)
+- Orders Accept/Decline (for cook)
+- View and Add to Cart Option (for customer)
+- Cart Page to Place the order (for customer)
+- Add User(Cook/Customer) (for admin)
+- Change the role(Cook/Customer) of User (for admin)
+- Delete the User Permanently
+- View statistics of the whole app in Tabular and Graphical form (for admin)
+
+
+  ## Tech Stack
+  Frontend: Flutter, Reactjs, css
+  Backend: Nodejs and Expressjs
+  Database: MongoDB
+  Storage: Firebase Firestore
+  Authentication: Firebase Auth
+  API: REST
