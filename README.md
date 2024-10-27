@@ -30,8 +30,13 @@ Additionally, the app includes an admin interface that allows the owner to view 
 
   ## Tech Stack
   Frontend: Flutter, Reactjs, css
+  
   Backend: Nodejs and Expressjs
+  
   Database: MongoDB
+  
   Storage: Firebase Firestore
+
   Authentication: Firebase Auth
+  
   API: REST
