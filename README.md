@@ -4,7 +4,7 @@
 
 # Khanawal: E-Commerce Mobile Application
 
-Khanawal is a revolutionary e-commerce mobile application designed to connect home cooks and customers seamlessly. With two dedicated interfaces—one for cooks to upload their culinary creations and another for customers to browse and purchase—we aim to address the common challenges faced by both parties.
+Khanawal is a revolutionary e-commerce mobile application designed to connect home cooks and customers seamlessly. With two dedicated interfaces - one for cooks to upload their culinary creations and another for customers to browse and purchase. we aim to address the common challenges faced by both parties.
 
 Home cooks often struggle with a lack of a uniform online platform and limited visibility, while customers face difficulties in finding authentic, healthy homemade food. Khanawal bridges these gaps, enhancing the user experience for both cooks and customers and fostering a vibrant community around home-cooked meals.
 
