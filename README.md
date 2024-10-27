@@ -10,7 +10,7 @@ Home cooks often struggle with a lack of a uniform online platform and limited v
 
 Additionally, the app includes an admin interface that allows the owner to view comprehensive statistics, providing insights into app performance and user engagement. Join us in transforming the way home cooks reach their audience and customers discover delightful, homemade options!
 
-## Features
+# Features
 - Registration and Login (for cook and customer)
 - Profile Photo and Username Upload and Update (for cook and customer)
 - Reset Password Option through Email(Reset Password Link) (for cook and customer)
@@ -28,15 +28,15 @@ Additionally, the app includes an admin interface that allows the owner to view 
 - View statistics of the whole app in Tabular and Graphical form (for admin)
 
 
-  ## Tech Stack
-  Frontend: Flutter, Reactjs, css
+# Tech Stack
+Frontend: Flutter, Reactjs, css
   
-  Backend: Nodejs and Expressjs
+Backend: Nodejs and Expressjs
   
-  Database: MongoDB
+Database: MongoDB
   
-  Storage: Firebase Firestore
+Storage: Firebase Firestore
 
-  Authentication: Firebase Auth
+Authentication: Firebase Auth
   
-  API: REST
+API: REST
